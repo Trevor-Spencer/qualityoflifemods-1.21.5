@@ -1,0 +1,19 @@
+{
+  "qualityoflifemods.configuration.title": "Quality of Life Mods Configs",
+  "qualityoflifemods.configuration.section.qualityoflifemods.common.toml": "Quality of Life Mods Configs",
+  "qualityoflifemods.configuration.section.qualityoflifemods.common.toml.title": "Quality of Life Mods Configs",
+  "qualityoflifemods.configuration.items": "Item List",
+  "qualityoflifemods.configuration.logDirtBlock": "Log Dirt Block",
+  "qualityoflifemods.configuration.magicNumberIntroduction": "Magic Number Text",
+  "qualityoflifemods.configuration.magicNumber": "Magic Number",
+
+  "key.qualityoflifemods.zoom": "Zoom Key",
+  "key.categories.qualityoflifemods": "Zoom Mod",
+
+  "qualityoflifemods.configuration.enablefullbright": "Enable Fullbright",
+  "qualityoflifemods.configuration.enablecoordinates": "Enable Coordinates",
+  "qualityoflifemods.configuration.enablezoom": "Enable Zoom",
+  "qualityoflifemods.configuration.enablemovement": "Enable Movment Visual",
+  "qualityoflifemods.configuration.enableslayer": "Enable Slayer Tracker",
+  "qualityoflifemods.configuration.enablehoppity": "Enable Hoppity Tracker"
+}

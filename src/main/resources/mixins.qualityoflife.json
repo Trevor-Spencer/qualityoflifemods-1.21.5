@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "net.gamma.qualityoflife.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "BlockLightLevelMixin",
+    "EntityLightLevelMixin",
+    "RenderMovementMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
