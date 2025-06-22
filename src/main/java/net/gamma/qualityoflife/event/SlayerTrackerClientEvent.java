@@ -1,8 +1,9 @@
 package net.gamma.qualityoflife.event;
 
-import com.mojang.logging.LogUtils;
 import net.gamma.qualityoflife.QualityofLifeMods;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
@@ -15,206 +16,621 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
-import org.slf4j.Logger;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
 import static net.gamma.qualityoflife.Config.SLAYER_ACTIVE;
-import static net.gamma.qualityoflife.event.CoordinatesClientEvent.stringBiome;
+import static net.gamma.qualityoflife.util.SlayerUtils.checkOnSkyblock;
+import static net.gamma.qualityoflife.util.SlayerUtils.logMobs;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @EventBusSubscriber(modid = QualityofLifeMods.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class SlayerTrackerClientEvent {
-    private static int blazeBossID = -1;
-    private static UUID blazeBossUUID;
-    private static int blazeNameID = -1;
-    private static int blazeSpawnByID = -1;
-    private static int blazeTimeRemainingID = -1;
-    private static int blazeCount = 0;
-    private static boolean blazeFound = false;
-
+    //GENERIC TRACKERS
+    private static int bossID = -1;
+    private static int nameID = -1;
+    private static int spawnedByID = -1;
+    private static int timeRemainingID = -1;
+    private static boolean bossFound = false;
+    //ADVANCED TRACKERS
     private static int skeletonBossID = -1;
-    private static UUID skeletonBossUUID;
     private static int skeletonNameID = -1;
     private static int skeletonTimeRemainingID = -1;
-    private static int skeletonCount = 0;
     private static boolean skeletonFound = false;
-
     private static int piglinBossID = -1;
-    private static UUID piglinBossUUID;
     private static int piglinNameID = -1;
     private static int piglinTimeRemainingID = -1;
-    private static int piglinCount = 0;
     private static boolean piglinFound = false;
-
-    private static boolean onCrimsonIsle = false;
+    private static boolean miniFound = false;
+    //TRACKERS FOR PROPER MOD USE TIME
     private static boolean trackingBoss = false;
+    private static boolean activeQuest = false;
+    private static boolean bossSlain = false;
+    //TRACKERS FOR WHICH BOSS IS SPAWNED
+    private static boolean trackingZombieBoss = false;
+    private static boolean trackingSpiderBoss = false;
+    private static boolean trackingWolfBoss = false;
+    private static boolean trackingEndermanBoss = false;
+    private static boolean trackingVampireBoss = false;
+    private static boolean trackingBlazeBoss = false;
+    //TRACKERS FOR RESETTING
+    private static boolean needToResetTrackers = false;
+    private static boolean advancedReset = false;
+    //Used for slowing processing
+    private static int TRACKCOOLDOWNMAX = 10;
+    private static int trackCooldown = 0;
+    //Read scoreboard object when world switch
+    public static boolean updateWorld = false;
 
-    private static final List<String> LOCATIONS = List.of("Crimson Isle", "Dojo", "Crimson Fields", "Burning Desert",
-            "Dragontail", "Dragontail Blacksmith", "Dragontail Bank", "Dragontail Townsquare", "Dragontail Bazaar",
-            "Dragontail Auction House", "The Bastion", "The Dukedom", "Magma Chamber", "Matriarch's Lair",
-            "Blazing Volcano", "Odger's Hut", "The Wasteland", "Forgotten Skull", "Smoldering Tomb", "Cathedral",
-            "Scarleton", "Scarleton Plaza", "Scarleton Bazaar", "Scarleton Auction House", "Scarleton Bank",
-            "Mystic Marsh", "Courtyard", "Community Center");
+    //Rendering Variables
+    public static int x = 20;
+    public static int y = 50;
+    private static int widthPadding = 2;
+    private static int heightPadding = 2;
+    public static int displayWidth = 100;
+    public static int displayHeight = 50;
 
+    private static final Map<String, Integer> SLAYERTYPEMAP = Map.of(
+            "Revenant Horror", 0,
+            "Tarantula Broodfather", 1,
+            "Sven Packmaster", 2,
+            "Voidgloom Seraph", 3,
+            "Riftstalker Bloodfiend", 4,
+            "Inferno Demonlord", 5);
+    private static final Map<Integer, String> SLAYERTYPEMAPLOOKUP = Map.of(
+            0, "Revenant Horror",
+            1, "Tarantula Broodfather",
+            2, "Sven Packmaster",
+            3, "Voidgloom Seraph",
+            4, "Riftstalker Bloodfiend",
+            5, "Inferno Demonlord");
+    private static int slayerType = -1;
 
+    private static void checkSlayer()
+    {
+       Collection<PlayerTeam> teams = Minecraft.getInstance().level.getScoreboard().getPlayerTeams();
+       for(PlayerTeam team : teams)
+       {
+           String scoreboardLine = String.format("%s%s",team.getPlayerPrefix().getString(), team.getPlayerSuffix().getString());
+           for(Map.Entry<String, Integer> entry : SLAYERTYPEMAP.entrySet())
+           {
+               if(scoreboardLine.contains(entry.getKey()))
+               {
+                   slayerType = entry.getValue();
+                   return;
+               }
+           }
+       }
+       slayerType = -1;
+    }
+
+    @SubscribeEvent
+    private static void joinWorld(EntityJoinLevelEvent event)
+    {
+        if(!event.getLevel().isClientSide){return;}
+        if(event.getEntity() instanceof LocalPlayer)
+        {
+            updateWorld = true;
+        }
+    }
     @SubscribeEvent
     private static void bossTracker(ClientTickEvent.Post event)
     {
-        if(!SLAYER_ACTIVE.get()){return;}
-        //Check if player is on crimsonIsle
-        if(Minecraft.getInstance().player == null) {return;}
+        if(!SLAYER_ACTIVE.get() || Minecraft.getInstance().player == null){return;}
         if(Minecraft.getInstance().level.isClientSide)
         {
-            PlayerTeam team_10 = Minecraft.getInstance().level.getScoreboard().getPlayerTeam("team_10");
-            boolean location10Found = false;
-            if (team_10 != null) {
-                String location10 = "Biome: " + team_10.getPlayerPrefix().getString() + team_10.getPlayerSuffix().getString();
-                location10Found = LOCATIONS.stream().anyMatch(loc -> location10.contains(loc));
-                if (location10Found) {
-                    onCrimsonIsle = true;
-                    stringBiome = location10;
-                } else {
-                    onCrimsonIsle = false;
-                }
-            }
-            if (!location10Found) {
-                PlayerTeam team_6 = Minecraft.getInstance().level.getScoreboard().getPlayerTeam("team_6");
-                if (team_6 != null) {
-                    String location06 = "Biome: " + team_6.getPlayerPrefix().getString() + team_6.getPlayerSuffix().getString();
-                    boolean location06Found = LOCATIONS.stream().anyMatch(loc -> location06.contains(loc));
-                    if (location06Found) {
-                        onCrimsonIsle = true;
-                        stringBiome = location06;
-                    } else {
-                        onCrimsonIsle = false;
-                    }
-                }
-            }
-            PlayerTeam team_5 = Minecraft.getInstance().level.getScoreboard().getPlayerTeam("team_5");
-            if(team_5 != null)
+            if(updateWorld){checkOnSkyblock();}
+            if(trackCooldown < TRACKCOOLDOWNMAX){trackCooldown++; return;}
+            trackCooldown = 0;
+            if(!checkOnSkyblock()) {return;}
+            checkSlayer();
+            if(slayerType == -1){trackingBoss = false; activeQuest = false; bossSlain = false;return;}
+            Collection<PlayerTeam> teams = Minecraft.getInstance().level.getScoreboard().getPlayerTeams();
+            for(PlayerTeam team : teams)
             {
-                String slayerStatus = team_5.getPlayerPrefix().getString() + team_5.getPlayerSuffix().getString();
-                if(!slayerStatus.contains("Slayer Quest")) {return;}
-            }
-            PlayerTeam team_3 = Minecraft.getInstance().level.getScoreboard().getPlayerTeam("team_3");
-            if(team_3 != null)
-            {
-                String slayerStatus = team_3.getPlayerPrefix().getString() + team_3.getPlayerSuffix().getString();
-                if(slayerStatus.contains("Slay the boss!"))
+                String scoreboardLine = String.format("%s%s",team.getPlayerPrefix().getString(), team.getPlayerSuffix().getString());
+                if(scoreboardLine.contains("Slay the boss!"))
                 {
+                    switch (slayerType)
+                    {
+                        case 0 : {trackingZombieBoss = true;}
+                        case 1 : {trackingSpiderBoss = true;}
+                        case 2 : {trackingWolfBoss = true;}
+                        case 3 : {trackingEndermanBoss = true;}
+                        case 4 : {trackingVampireBoss = true;}
+                        case 5 : {trackingBlazeBoss = true;}
+                    }
                     trackingBoss = true;
+                    break;
                 }
                 else
                 {
+                    trackingZombieBoss = false;
+                    trackingSpiderBoss = false;
+                    trackingWolfBoss = false;
+                    trackingEndermanBoss = false;
+                    trackingVampireBoss = false;
+                    trackingBlazeBoss = false;
                     trackingBoss = false;
                 }
             }
+            for(PlayerTeam team : teams)
+            {
+                String scoreboardLine = String.format("%s%s",team.getPlayerPrefix().getString(), team.getPlayerSuffix().getString());
+                if(scoreboardLine.contains("Slayer Quest"))
+                {
+                    activeQuest = true;
+                    break;
+                }
+                else
+                {
+                    activeQuest = false;
+                }
+            }
+            for(PlayerTeam team : teams)
+            {
+                String scoreboardLine = String.format("%s%s",team.getPlayerPrefix().getString(), team.getPlayerSuffix().getString());
+                if(scoreboardLine.contains("Boss slain!"))
+                {
+                    bossSlain = true;
+                    break;
+                }
+                else
+                {
+                    bossSlain = false;
+                }
+            }
+            if(trackingZombieBoss)
+            {
+                needToResetTrackers = true;
+                trackZombieBoss();
+            }
+            else if(trackingSpiderBoss)
+            {
+                needToResetTrackers = true;
+                trackSpiderBoss();
+            }
+            else if(trackingWolfBoss)
+            {
+                needToResetTrackers = true;
+                trackWolfBoss();
+            }
+            else if(trackingEndermanBoss)
+            {
+                needToResetTrackers = true;
+                trackEndermanBoss();
+            }
+            else if(trackingVampireBoss)
+            {
+                needToResetTrackers = true;
+                trackVampireBoss();
+            }
+            else if(trackingBlazeBoss)
+            {
+                needToResetTrackers = true;
+                advancedReset = true;
+                trackBlazeBoss();
+            }
+            //If Slayer not active
+            if(!trackingBoss)
+            {
+                if(needToResetTrackers){resetAllTrackers();}
+            }
         }
+    }
 
+    private static void resetAllTrackers()
+    {
 
-        if(!onCrimsonIsle){return;}
-        //If blaze Slayer is not active
-        if(!trackingBoss)
+        bossID = -1;
+        nameID = -1;
+        spawnedByID = -1;
+        timeRemainingID = -1;
+        bossFound = false;
+        if(advancedReset)
         {
-            blazeBossID = -1;
-            blazeBossUUID = null;
-            blazeNameID = -1;
-            blazeSpawnByID = -1;
-            blazeTimeRemainingID = -1;
-            blazeCount = 0;
-            blazeFound = false;
-
             skeletonBossID = -1;
-            skeletonBossUUID = null;
             skeletonNameID = -1;
             skeletonTimeRemainingID = -1;
-            skeletonCount = 0;
             skeletonFound = false;
 
             piglinBossID = -1;
-            piglinBossUUID = null;
             piglinNameID = -1;
             piglinTimeRemainingID = -1;
-            piglinCount = 0;
             piglinFound = false;
 
-
+            miniFound = false;
         }
-        else
+
+        needToResetTrackers = false;
+        advancedReset = false;
+    }
+
+    private static void trackZombieBoss()
+    {
+        if(Minecraft.getInstance().player instanceof LocalPlayer player)
         {
-            if(Minecraft.getInstance().player instanceof LocalPlayer player)
+            ClientLevel level = Minecraft.getInstance().level;
+            if(level.getEntity(nameID) != null && level.getEntity(bossID) != null && level.getEntity(spawnedByID) != null && level.getEntity(timeRemainingID) != null)
             {
-                ClientLevel level = Minecraft.getInstance().level;
-                Logger LOGGER = LogUtils.getLogger();
-                if(level.getEntity(blazeNameID) != null && level.getEntity(blazeBossID) != null && level.getEntity(blazeSpawnByID) != null && level.getEntity(blazeTimeRemainingID) != null)
+                return;
+            }
+
+            //RESET ALL TRACKERS
+            bossID = -1;
+            nameID = -1;
+            spawnedByID = -1;
+            timeRemainingID = -1;
+            bossFound = false;
+
+            AABB area = new AABB(player.getOnPos()).inflate(20);
+            List<Entity> nearbyZombie = level.getEntities(
+                    player,
+                    area,
+                    entity -> entity.getType() == EntityType.ZOMBIE);
+
+            for(Entity entityZombie : nearbyZombie)
+            {
+                int tempNameID = -1;
+                int tempSpawnByID = -1;
+                int tempTimeRemainingID = -1;
+                int tempBossID = entityZombie.getId();
+
+                AABB areaArmorstand = new AABB(entityZombie.blockPosition()).inflate(0d,2d,0d);
+                List<Entity> nearbyArmorStand = Minecraft.getInstance().level.getEntities(player,areaArmorstand, entity -> entity.getType() == EntityType.ARMOR_STAND);
+
+                for(Entity entityArmorstand : nearbyArmorStand)
                 {
-                    //LOG BOSS FOUND WITH INFO
-                    LOGGER.info("---[BLAZE BOSS FOUND INFO]---");
-                    LOGGER.info("BossID: " + blazeBossID);
-                    LOGGER.info("BossUUID: " + blazeBossUUID);
-                    LOGGER.info("NameID: " + blazeNameID + " NameComponent: " + level.getEntity(blazeNameID).getCustomName().getString());
-                    LOGGER.info("SpawnedByID: " + blazeSpawnByID + " NameComponent: " + level.getEntity(blazeSpawnByID).getCustomName().getString());
-                    LOGGER.info("TimeID: " + blazeTimeRemainingID + " NameComponent: " + level.getEntity(blazeTimeRemainingID).getCustomName().getString());
-                    return;
+                    Component customName = entityArmorstand.getCustomName();
+                    int armorstandID = entityArmorstand.getId();
+                    if(customName != null)
+                    {
+                        if(customName.getString().contains("Revenant Horror"))
+                        {
+                            tempNameID = armorstandID;
+                        }
+                        else if(customName.getString().contains("Spawned by: " + player.getName().getString()))
+                        {
+                            tempSpawnByID = armorstandID;
+                        }
+                        else if(customName.getString().matches(".*\\d+:\\d+.*"))
+                        {
+                            tempTimeRemainingID = armorstandID;
+                        }
+                    }
                 }
-                if((level.getEntity(skeletonBossID) != null && level.getEntity(skeletonNameID) != null && level.getEntity(skeletonTimeRemainingID) != null) || (level.getEntity(piglinBossID) != null && level.getEntity(piglinNameID) != null && level.getEntity(piglinTimeRemainingID) != null))
+
+                if(tempNameID != -1 && tempSpawnByID != -1 && tempTimeRemainingID != -1)
                 {
-                    if(level.getEntity(skeletonBossID) != null)
-                    {
-                        //LOG MINI FOUND WITH INFO
-                        LOGGER.info("---[SKELETON MINI FOUND INFO]---");
-                        LOGGER.info("BossID: " + skeletonBossID);
-                        LOGGER.info("BossUUID: " + skeletonBossUUID);
-                        LOGGER.info("NameID: " + skeletonNameID + " NameComponent: " + level.getEntity(skeletonNameID).getCustomName().getString());
-                        LOGGER.info("TimeID: " + skeletonTimeRemainingID + " NameComponent: " + level.getEntity(skeletonTimeRemainingID).getCustomName().getString());
-                    }
-                    if(level.getEntity(piglinBossID) != null)
-                    {
-                        //LOG MINI FOUND WITH INFO
-                        LOGGER.info("---[PIGLIN MINI FOUND INFO]---");
-                        LOGGER.info("BossID: " + piglinBossID);
-                        LOGGER.info("BossUUID: " + piglinBossUUID);
-                        LOGGER.info("NameID: " + piglinNameID + " NameComponent: " + level.getEntity(piglinNameID).getCustomName().getString());
-                        LOGGER.info("TimeID: " + piglinTimeRemainingID + " NameComponent: " + level.getEntity(piglinTimeRemainingID).getCustomName().getString());
-                    }
-                    return;
+                    bossID = tempBossID;
+                    nameID = tempNameID;
+                    spawnedByID = tempSpawnByID;
+                    timeRemainingID = tempTimeRemainingID;
+                    bossFound = true;
+                    //LOG BOSS INITIALIZE WITH INFO
+                    logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);
+                    break;
                 }
+                nearbyArmorStand.clear();
+            }
+            nearbyZombie.clear();
+        }
+    }
+    private static void trackSpiderBoss()
+    {
+        if(Minecraft.getInstance().player instanceof LocalPlayer player)
+        {
+            ClientLevel level = Minecraft.getInstance().level;
+            if(level.getEntity(nameID) != null && level.getEntity(bossID) != null && level.getEntity(spawnedByID) != null && level.getEntity(timeRemainingID) != null)
+            {
+                return;
+            }
+            //RESET ALL TRACKERS
+            bossID = -1;
+            nameID = -1;
+            spawnedByID = -1;
+            timeRemainingID = -1;
+            bossFound = false;
+
+            AABB area = new AABB(player.getOnPos()).inflate(20);
+            List<Entity> nearbySpider = level.getEntities(
+                    player,
+                    area,
+                    entity -> entity.getType() == EntityType.SPIDER);
+
+            for(Entity entitySpider : nearbySpider)
+            {
+                int tempNameID = -1;
+                int tempSpawnByID = -1;
+                int tempTimeRemainingID = -1;
+                int tempBossID = entitySpider.getId();
+
+                AABB areaArmorstand = new AABB(entitySpider.blockPosition()).inflate(0d,2d,0d);
+                List<Entity> nearbyArmorStand = Minecraft.getInstance().level.getEntities(player,areaArmorstand, entity -> entity.getType() == EntityType.ARMOR_STAND);
+
+                for(Entity entityArmorstand : nearbyArmorStand)
+                {
+                    Component customName = entityArmorstand.getCustomName();
+                    int armorstandID = entityArmorstand.getId();
+                    if(customName != null)
+                    {
+                        if(customName.getString().contains("Tarantula Broodfather"))
+                        {
+                            tempNameID = armorstandID;
+                        }
+                        else if(customName.getString().contains("Spawned by: " + player.getName().getString()))
+                        {
+                            tempSpawnByID = armorstandID;
+                        }
+                        else if(customName.getString().matches(".*\\d+:\\d+.*"))
+                        {
+                            tempTimeRemainingID = armorstandID;
+                        }
+                    }
+                }
+
+                if(tempNameID != -1 && tempSpawnByID != -1 && tempTimeRemainingID != -1)
+                {
+                    bossID = tempBossID;
+                    nameID = tempNameID;
+                    spawnedByID = tempSpawnByID;
+                    timeRemainingID = tempTimeRemainingID;
+                    bossFound = true;
+                    //LOG BOSS INITIALIZE WITH INFO
+                    logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);
+                    break;
+                }
+                nearbyArmorStand.clear();
+            }
+            nearbySpider.clear();
+        }
+    }
+    private static void trackWolfBoss()
+    {
+        if(Minecraft.getInstance().player instanceof LocalPlayer player)
+        {
+            ClientLevel level = Minecraft.getInstance().level;
+            if(level.getEntity(nameID) != null && level.getEntity(bossID) != null && level.getEntity(spawnedByID) != null && level.getEntity(timeRemainingID) != null)
+            {
+                return;
+            }
+            //RESET ALL TRACKERS
+            bossID = -1;
+            nameID = -1;
+            spawnedByID = -1;
+            timeRemainingID = -1;
+            bossFound = false;
+
+            AABB area = new AABB(player.getOnPos()).inflate(20);
+            List<Entity> nearbyWolf = level.getEntities(
+                    player,
+                    area,
+                    entity -> entity.getType() == EntityType.WOLF);
+
+            for(Entity entityWolf : nearbyWolf)
+            {
+                int tempNameID = -1;
+                int tempSpawnByID = -1;
+                int tempTimeRemainingID = -1;
+                int tempBossID = entityWolf.getId();
+
+                AABB areaArmorstand = new AABB(entityWolf.blockPosition()).inflate(0d,2d,0d);
+                List<Entity> nearbyArmorStand = Minecraft.getInstance().level.getEntities(player,areaArmorstand, entity -> entity.getType() == EntityType.ARMOR_STAND);
+
+                for(Entity entityArmorstand : nearbyArmorStand)
+                {
+                    Component customName = entityArmorstand.getCustomName();
+                    int armorstandID = entityArmorstand.getId();
+                    if(customName != null)
+                    {
+                        if(customName.getString().contains("Sven Packmaster"))
+                        {
+                            tempNameID = armorstandID;
+                        }
+                        else if(customName.getString().contains("Spawned by: " + player.getName().getString()))
+                        {
+                            tempSpawnByID = armorstandID;
+                        }
+                        else if(customName.getString().matches(".*\\d+:\\d+.*"))
+                        {
+                            tempTimeRemainingID = armorstandID;
+                        }
+                    }
+                }
+
+                if(tempNameID != -1 && tempSpawnByID != -1 && tempTimeRemainingID != -1)
+                {
+                    bossID = tempBossID;
+                    nameID = tempNameID;
+                    spawnedByID = tempSpawnByID;
+                    timeRemainingID = tempTimeRemainingID;
+                    bossFound = true;
+                    //LOG BOSS INITIALIZE WITH INFO
+                    logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);
+                    break;
+                }
+                nearbyArmorStand.clear();
+            }
+            nearbyWolf.clear();
+        }
+    }
+    private static void trackEndermanBoss()
+    {
+        if(Minecraft.getInstance().player instanceof LocalPlayer player)
+        {
+            ClientLevel level = Minecraft.getInstance().level;
+            if(level.getEntity(nameID) != null && level.getEntity(bossID) != null && level.getEntity(spawnedByID) != null && level.getEntity(timeRemainingID) != null)
+            {
+                return;
+            }
+            //RESET ALL TRACKERS
+            bossID = -1;
+            nameID = -1;
+            spawnedByID = -1;
+            timeRemainingID = -1;
+            bossFound = false;
+
+            AABB area = new AABB(player.getOnPos()).inflate(20);
+            List<Entity> nearbyEnderman = level.getEntities(
+                    player,
+                    area,
+                    entity -> entity.getType() == EntityType.ENDERMAN);
+
+            for(Entity entityEnderman : nearbyEnderman)
+            {
+                int tempNameID = -1;
+                int tempSpawnByID = -1;
+                int tempTimeRemainingID = -1;
+                int tempBossID = entityEnderman.getId();
+
+                AABB areaArmorstand = new AABB(entityEnderman.blockPosition()).inflate(0d,2d,0d);
+                List<Entity> nearbyArmorStand = Minecraft.getInstance().level.getEntities(player,areaArmorstand, entity -> entity.getType() == EntityType.ARMOR_STAND);
+
+                for(Entity entityArmorstand : nearbyArmorStand)
+                {
+                    Component customName = entityArmorstand.getCustomName();
+                    int armorstandID = entityArmorstand.getId();
+                    if(customName != null)
+                    {
+                        if(customName.getString().contains("Voidgloom Seraph"))
+                        {
+                            tempNameID = armorstandID;
+                        }
+                        else if(customName.getString().contains("Spawned by: " + player.getName().getString()))
+                        {
+                            tempSpawnByID = armorstandID;
+                        }
+                        else if(customName.getString().matches(".*\\d+:\\d+.*"))
+                        {
+                            tempTimeRemainingID = armorstandID;
+                        }
+                    }
+                }
+
+                if(tempNameID != -1 && tempSpawnByID != -1 && tempTimeRemainingID != -1)
+                {
+                    bossID = tempBossID;
+                    nameID = tempNameID;
+                    spawnedByID = tempSpawnByID;
+                    timeRemainingID = tempTimeRemainingID;
+                    bossFound = true;
+                    //LOG BOSS INITIALIZE WITH INFO
+                    logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);
+                    break;
+                }
+                nearbyArmorStand.clear();
+            }
+            nearbyEnderman.clear();
+        }
+    }
+    private static void trackVampireBoss() {}
+    private static void trackBlazeBoss()
+    {
+        if(Minecraft.getInstance().player instanceof LocalPlayer player)
+        {
+            ClientLevel level = Minecraft.getInstance().level;
+            if(level.getEntity(nameID) != null && level.getEntity(bossID) != null && level.getEntity(spawnedByID) != null && level.getEntity(timeRemainingID) != null)
+            {
+                return;
+            }
+            if((level.getEntity(skeletonBossID) != null && level.getEntity(skeletonNameID) != null && level.getEntity(skeletonTimeRemainingID) != null) || (level.getEntity(piglinBossID) != null && level.getEntity(piglinNameID) != null && level.getEntity(piglinTimeRemainingID) != null))
+            {
+                return;
+            }
+
+            //RESET ALL TRACKERS
+            bossID = -1;
+            nameID = -1;
+            spawnedByID = -1;
+            timeRemainingID = -1;
+            bossFound = false;
+            miniFound = false;
+
+            skeletonBossID = -1;
+            skeletonNameID = -1;
+            skeletonTimeRemainingID = -1;
+            skeletonFound = false;
+            piglinBossID = -1;
+            piglinNameID = -1;
+            piglinTimeRemainingID = -1;
+            piglinFound = false;
+
+            AABB area = new AABB(player.getOnPos()).inflate(20);
+            List<Entity> nearbyBlazes = level.getEntities(
+                    player,
+                    area,
+                    entity -> entity.getType() == EntityType.BLAZE);
+
+            for(Entity entityBlaze : nearbyBlazes)
+            {
+                int tempNameID = -1;
+                int tempSpawnByID = -1;
+                int tempTimeRemainingID = -1;
+                int tempBossID = entityBlaze.getId();
+
+                AABB areaArmorstand = new AABB(entityBlaze.blockPosition()).inflate(0d,2d,0d);
+                List<Entity> nearbyArmorStand = Minecraft.getInstance().level.getEntities(player,areaArmorstand, entity -> entity.getType() == EntityType.ARMOR_STAND);
+
+                for(Entity entityArmorstand : nearbyArmorStand)
+                {
+                    Component customName = entityArmorstand.getCustomName();
+                    int armorstandID = entityArmorstand.getId();
+                    if(customName != null)
+                    {
+                        if(customName.getString().contains("Inferno Demonlord"))
+                        {
+                            tempNameID = armorstandID;
+                        }
+                        else if(customName.getString().contains("Spawned by: " + player.getName().getString()))
+                        {
+                            tempSpawnByID = armorstandID;
+                        }
+                        else if(customName.getString().matches(".*\\d+:\\d+.*"))
+                        {
+                            tempTimeRemainingID = armorstandID;
+                        }
+                    }
+                }
+
+                if(tempNameID != -1 && tempSpawnByID != -1 && tempTimeRemainingID != -1)
+                {
+                    bossID = tempBossID;
+                    nameID = tempNameID;
+                    spawnedByID = tempSpawnByID;
+                    timeRemainingID = tempTimeRemainingID;
+                    bossFound = true;
+                    //LOG BOSS INITIALIZE WITH INFO
+                    logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);
+                    break;
+                }
+                nearbyArmorStand.clear();
+            }
+            nearbyBlazes.clear();
+            //NOT IN BLAZE PHASE (miniboss phase)
+            if(!bossFound)
+            {
+                nameID = -1;
+                spawnedByID = -1;
+                timeRemainingID = -1;
 
                 //RESET ALL TRACKERS
-                blazeBossID = -1;
-                blazeBossUUID = null;
-                blazeNameID = -1;
-                blazeSpawnByID = -1;
-                blazeTimeRemainingID = -1;
-                blazeCount = 0;
-                blazeFound = false;
-
+                skeletonBossID = -1;
                 skeletonNameID = -1;
                 skeletonTimeRemainingID = -1;
-                skeletonCount = 0;
                 skeletonFound = false;
-                piglinNameID = -1;
-                piglinTimeRemainingID = -1;
-                piglinCount = 0;
-                piglinFound = false;
-
-                AABB area = new AABB(player.getOnPos()).inflate(20);
-                List<Entity> nearbyBlazes = level.getEntities(
+                AABB areaSkeleton = new AABB(player.getOnPos()).inflate(20);
+                List<Entity> nearbySkeletons = level.getEntities(
                         player,
-                        area,
-                        entity -> entity.getType() == EntityType.BLAZE);
+                        areaSkeleton,
+                        entity -> entity.getType() == EntityType.WITHER_SKELETON);
 
-                for(Entity entityBlaze : nearbyBlazes)
+                for(Entity entitySkeleton : nearbySkeletons)
                 {
                     int tempNameID = -1;
-                    int tempSpawnByID = -1;
                     int tempTimeRemainingID = -1;
-                    int tempBossID = entityBlaze.getId();
-                    UUID tempBossUUID = entityBlaze.getUUID();
-                    int tempCount = 0;
+                    int tempBossID = entitySkeleton.getId();
 
-                    AABB areaArmorstand = new AABB(entityBlaze.blockPosition()).inflate(0d,2d,0d);
+                    AABB areaArmorstand = new AABB(entitySkeleton.blockPosition()).inflate(0d,3d,0d);
                     List<Entity> nearbyArmorStand = Minecraft.getInstance().level.getEntities(player,areaArmorstand, entity -> entity.getType() == EntityType.ARMOR_STAND);
 
                     for(Entity entityArmorstand : nearbyArmorStand)
@@ -223,176 +639,84 @@ public class SlayerTrackerClientEvent {
                         int armorstandID = entityArmorstand.getId();
                         if(customName != null)
                         {
-                            if(customName.getString().contains("Inferno Demonlord"))
+                            if(customName.getString().contains("ⓆⓊⒶⓏⒾⒾ"))
                             {
                                 tempNameID = armorstandID;
-                                tempCount++;
-                            }
-                            else if(customName.getString().contains("Spawned by: " + player.getName().getString()))
-                            {
-                                tempSpawnByID = armorstandID;
-                                tempCount++;
                             }
                             else if(customName.getString().matches(".*\\d+:\\d+.*"))
                             {
                                 tempTimeRemainingID = armorstandID;
-                                tempCount++;
                             }
                         }
                     }
 
-                    if(tempNameID != -1 && tempSpawnByID != -1 && tempTimeRemainingID != -1)
+                    if(tempNameID != -1 && tempTimeRemainingID != -1)
                     {
-                        blazeBossID = tempBossID;
-                        blazeBossUUID = tempBossUUID;
-                        blazeNameID = tempNameID;
-                        blazeSpawnByID = tempSpawnByID;
-                        blazeTimeRemainingID = tempTimeRemainingID;
-                        blazeCount = tempCount;
-                        blazeFound = true;
+                        skeletonBossID = tempBossID;
+                        skeletonNameID = tempNameID;
+                        skeletonTimeRemainingID = tempTimeRemainingID;
+                        skeletonFound = true;
+                        miniFound = true;
                         //LOG BOSS INITIALIZE WITH INFO
-                        LOGGER.info("---[BLAZE BOSS INITIALIZED INFO]---");
-                        LOGGER.info("BossID: " + blazeBossID);
-                        LOGGER.info("BossUUID: " + blazeBossUUID);
-                        LOGGER.info("NameID: " + blazeNameID + " NameComponent: " + level.getEntity(blazeNameID).getCustomName().getString());
-                        LOGGER.info("SpawnedByID: " + blazeSpawnByID + " NameComponent: " + level.getEntity(blazeSpawnByID).getCustomName().getString());
-                        LOGGER.info("TimeID: " + blazeTimeRemainingID + " NameComponent: " + level.getEntity(blazeTimeRemainingID).getCustomName().getString());
+                        logMobs(skeletonBossID, skeletonNameID, -1, skeletonTimeRemainingID, true);
                         break;
                     }
+                    nearbyArmorStand.clear();
                 }
-                //NOT IN BLAZE PHASE (miniboss phase)
-                if(!blazeFound)
+                nearbySkeletons.clear();
+
+                //RESET ALL TRACKERS
+                piglinBossID = -1;
+                piglinNameID = -1;
+                piglinTimeRemainingID = -1;
+                piglinFound = false;
+
+                AABB areaPiglin = new AABB(player.getOnPos()).inflate(20);
+                List<Entity> nearbyZombifiedPiglin = level.getEntities(
+                        player,
+                        areaPiglin,
+                        entity -> entity.getType() == EntityType.ZOMBIFIED_PIGLIN);
+
+                for(Entity entityPiglin : nearbyZombifiedPiglin)
                 {
-                    blazeNameID = -1;
-                    blazeSpawnByID = -1;
-                    blazeTimeRemainingID = -1;
-                    blazeCount = 0;
-                    blazeFound = false;
+                    int tempNameID = -1;
+                    int tempTimeRemainingID = -1;
+                    int tempBossID = entityPiglin.getId();
 
-                    //RESET ALL TRACKERS
-                    skeletonBossID = -1;
-                    skeletonBossUUID = null;
-                    skeletonNameID = -1;
-                    skeletonTimeRemainingID = -1;
-                    skeletonCount = 0;
-                    skeletonFound = false;
-                    AABB areaSkeleton = new AABB(player.getOnPos()).inflate(20);
-                    List<Entity> nearbySkeletons = level.getEntities(
-                            player,
-                            areaSkeleton,
-                            entity -> entity.getType() == EntityType.WITHER_SKELETON);
+                    AABB areaArmorstand = new AABB(entityPiglin.blockPosition()).inflate(0d,3d,0d);
+                    List<Entity> nearbyArmorStand = Minecraft.getInstance().level.getEntities(player,areaArmorstand, entity -> entity.getType() == EntityType.ARMOR_STAND);
 
-                    for(Entity entitySkeleton : nearbySkeletons)
+                    for(Entity entityArmorstand : nearbyArmorStand)
                     {
-                        int tempNameID = -1;
-                        int tempTimeRemainingID = -1;
-                        int tempBossID = entitySkeleton.getId();
-                        UUID tempBossUUID = entitySkeleton.getUUID();
-                        int tempCount = 0;
-
-                        AABB areaArmorstand = new AABB(entitySkeleton.blockPosition()).inflate(0d,3d,0d);
-                        List<Entity> nearbyArmorStand = Minecraft.getInstance().level.getEntities(player,areaArmorstand, entity -> entity.getType() == EntityType.ARMOR_STAND);
-
-                        for(Entity entityArmorstand : nearbyArmorStand)
+                        Component customName = entityArmorstand.getCustomName();
+                        int armorstandID = entityArmorstand.getId();
+                        if(customName != null)
                         {
-                            Component customName = entityArmorstand.getCustomName();
-                            int armorstandID = entityArmorstand.getId();
-                            if(customName != null)
+                            if(customName.getString().contains("ⓉⓎⓅⒽⓄⒺⓊⓈ"))
                             {
-                                if(customName.getString().contains("ⓆⓊⒶⓏⒾⒾ"))
-                                {
-                                    tempNameID = armorstandID;
-                                    tempCount++;
-                                }
-                                else if(customName.getString().matches(".*\\d+:\\d+.*"))
-                                {
-                                    tempTimeRemainingID = armorstandID;
-                                    tempCount++;
-                                }
+                                tempNameID = armorstandID;
                             }
-                        }
-
-                        if(tempNameID != -1 && tempTimeRemainingID != -1)
-                        {
-                            skeletonBossID = tempBossID;
-                            skeletonBossUUID = tempBossUUID;
-                            skeletonNameID = tempNameID;
-                            skeletonTimeRemainingID = tempTimeRemainingID;
-                            skeletonCount = tempCount;
-                            skeletonFound = true;
-                            //LOG BOSS INITIALIZE WITH INFO
-                            LOGGER.info("---[SKELETON MINI INITIALIZED INFO]---");
-                            LOGGER.info("BossID: " + skeletonBossID);
-                            LOGGER.info("BossUUID: " + skeletonBossUUID);
-                            LOGGER.info("NameID: " + skeletonNameID + " NameComponent: " + level.getEntity(skeletonNameID).getCustomName().getString());
-                            LOGGER.info("TimeID: " + skeletonTimeRemainingID + " NameComponent: " + level.getEntity(skeletonTimeRemainingID).getCustomName().getString());
-                            break;
+                            else if(customName.getString().matches(".*\\d+:\\d+.*"))
+                            {
+                                tempTimeRemainingID = armorstandID;
+                            }
                         }
                     }
 
-                    //RESET ALL TRACKERS
-                    piglinBossID = -1;
-                    piglinBossUUID = null;
-                    piglinNameID = -1;
-                    piglinTimeRemainingID = -1;
-                    piglinCount = 0;
-                    piglinFound = false;
-
-                    AABB areaPiglin = new AABB(player.getOnPos()).inflate(20);
-                    List<Entity> nearbyZombifiedPiglin = level.getEntities(
-                            player,
-                            areaPiglin,
-                            entity -> entity.getType() == EntityType.ZOMBIFIED_PIGLIN);
-
-                    for(Entity entityPiglin : nearbyZombifiedPiglin)
+                    if(tempNameID != -1 && tempTimeRemainingID != -1)
                     {
-                        int tempNameID = -1;
-                        int tempTimeRemainingID = -1;
-                        int tempBossID = entityPiglin.getId();
-                        UUID tempBossUUID = entityPiglin.getUUID();
-                        int tempCount = 0;
-
-                        AABB areaArmorstand = new AABB(entityPiglin.blockPosition()).inflate(0d,3d,0d);
-                        List<Entity> nearbyArmorStand = Minecraft.getInstance().level.getEntities(player,areaArmorstand, entity -> entity.getType() == EntityType.ARMOR_STAND);
-
-                        for(Entity entityArmorstand : nearbyArmorStand)
-                        {
-                            Component customName = entityArmorstand.getCustomName();
-                            int armorstandID = entityArmorstand.getId();
-                            if(customName != null)
-                            {
-                                if(customName.getString().contains("ⓉⓎⓅⒽⓄⒺⓊⓈ"))
-                                {
-                                    tempNameID = armorstandID;
-                                    tempCount++;
-                                }
-                                else if(customName.getString().matches(".*\\d+:\\d+.*"))
-                                {
-                                    tempTimeRemainingID = armorstandID;
-                                    tempCount++;
-                                }
-                            }
-                        }
-
-                        if(tempNameID != -1 && tempTimeRemainingID != -1)
-                        {
-                            piglinBossID = tempBossID;
-                            piglinBossUUID = tempBossUUID;
-                            piglinNameID = tempNameID;
-                            piglinTimeRemainingID = tempTimeRemainingID;
-                            piglinCount = tempCount;
-                            piglinFound = true;
-                            //LOG BOSS INITIALIZE WITH INFO
-                            LOGGER.info("---[PIGLIN MINI INITIALIZED INFO]---");
-                            LOGGER.info("BossID: " + piglinBossID);
-                            LOGGER.info("BossUUID: " + piglinBossUUID);
-                            LOGGER.info("NameID: " + piglinNameID + " NameComponent: " + level.getEntity(piglinNameID).getCustomName().getString());
-                            LOGGER.info("TimeID: " + piglinTimeRemainingID + " NameComponent: " + level.getEntity(piglinTimeRemainingID).getCustomName().getString());
-                            break;
-                        }
+                        piglinBossID = tempBossID;
+                        piglinNameID = tempNameID;
+                        piglinTimeRemainingID = tempTimeRemainingID;
+                        piglinFound = true;
+                        miniFound = true;
+                        //LOG BOSS INITIALIZE WITH INFO
+                        logMobs(piglinBossID, piglinNameID, -1, piglinTimeRemainingID, true);
+                        break;
                     }
+                    nearbyArmorStand.clear();
                 }
-
+                nearbyZombifiedPiglin.clear();
             }
         }
     }
@@ -400,150 +724,240 @@ public class SlayerTrackerClientEvent {
     @SubscribeEvent
     private static void renderGui(RenderGuiEvent.Post event)
     {
-        if(!SLAYER_ACTIVE.get()){return;}
-        if(Minecraft.getInstance().level != null)
+        if(!SLAYER_ACTIVE.get() || Minecraft.getInstance().level == null){return;}
+        if(!checkOnSkyblock()){return;}
+        GuiGraphics graphics = event.getGuiGraphics();
+        Font font = Minecraft.getInstance().font;
+        int colorText = 0xFFFFFF;
+        int colorBackground = 0x805C5C5C;
+        int height = Minecraft.getInstance().font.lineHeight;
+        String title = String.format("Slayer Quest For %s", SLAYERTYPEMAPLOOKUP.get(slayerType));
+        String ending = "Boss Slain";
+        if(activeQuest && !bossSlain && !trackingBoss)
         {
-            PlayerTeam team_10 = Minecraft.getInstance().level.getScoreboard().getPlayerTeam("team_10");
-            boolean location10Found = false;
-            if(team_10 != null)
+            graphics.fill(x, y, x + displayWidth, y + displayHeight, colorBackground);
+            //Calculate scale
+            float scaleWidth = 1.0f;
+            float scaleHeight = 1.0f;
+            List<Integer> textWidths = List.of(font.width(title)+(widthPadding*2));
+            int textHeight = 1 * font.lineHeight + (heightPadding*2);
+            int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
+            if(textHeight > displayHeight)
             {
-                String location10 = "Biome: " + team_10.getPlayerPrefix().getString() + team_10.getPlayerSuffix().getString();
-                location10Found = LOCATIONS.stream().anyMatch(loc -> location10.contains(loc));
-                if(location10Found)
+                scaleHeight = (float) displayHeight / textHeight;
+            }
+            if(maxWidth > displayWidth)
+            {
+                scaleWidth = (float) displayWidth / maxWidth;
+            }
+            float scale = Math.min(scaleWidth, scaleHeight);
+            graphics.pose().pushPose();
+            graphics.pose().scale(scale, scale, 1.0f);
+            graphics.drawString(font, title, (x + widthPadding)/scale, (y + heightPadding + (height*0))/scale, colorText, false);
+            graphics.pose().popPose();
+        }
+        if(activeQuest && bossSlain && !trackingBoss)
+        {
+            graphics.fill(x, y, x + displayWidth, y + displayHeight, colorBackground);
+            //Calculate scale
+            float scaleWidth = 1.0f;
+            float scaleHeight = 1.0f;
+            List<Integer> textWidths = List.of(font.width(title)+(widthPadding*2), font.width(ending)+(widthPadding*2));
+            int textHeight = 2 * font.lineHeight + (heightPadding*2);
+            int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
+            if(textHeight > displayHeight)
+            {
+                scaleHeight = (float) displayHeight / textHeight;
+            }
+            if(maxWidth > displayWidth)
+            {
+                scaleWidth = (float) displayWidth / maxWidth;
+            }
+            float scale = Math.min(scaleWidth, scaleHeight);
+            graphics.pose().pushPose();
+            graphics.pose().scale(scale, scale, 1.0f);
+            graphics.drawString(font, title, (x + widthPadding)/scale, (y + heightPadding + (height*0))/scale, colorText, false);
+            graphics.drawString(font, ending, (x + widthPadding)/scale, (y + heightPadding + (height*1))/scale, colorText, false);
+            graphics.pose().popPose();
+        }
+        if(activeQuest &&!bossSlain && trackingBoss)
+        {
+            graphics.fill(x, y, x + displayWidth, y + displayHeight, colorBackground);
+            if(bossFound)
+            {
+                String name;
+                String time;
+                String spawned;
+                String type;
+                if(Minecraft.getInstance().level.getEntity(nameID) != null)
                 {
-                    onCrimsonIsle = true;
-                    stringBiome = location10;
+                    if(Minecraft.getInstance().level.getEntity(nameID).getCustomName() != null)
+                    {
+                        name = String.format("Name: %s", Minecraft.getInstance().level.getEntity(nameID).getCustomName().getString());
+                    }
+                    else
+                    {
+                        name = "Name:";
+                    }
                 }
                 else
                 {
-                    onCrimsonIsle = false;
+                    name = "Name:";
                 }
-            }
-            if(!location10Found)
-            {
-                PlayerTeam team_06 = Minecraft.getInstance().level.getScoreboard().getPlayerTeam("team_6");
-                if(team_06 != null)
+                if(Minecraft.getInstance().level.getEntity(timeRemainingID) != null)
                 {
-                    String location06 = "Biome: " + team_06.getPlayerPrefix().getString() + team_06.getPlayerSuffix().getString();
-                    boolean location06Found = LOCATIONS.stream().anyMatch(loc -> location06.contains(loc));
-                    if(location06Found)
+                    if(Minecraft.getInstance().level.getEntity(timeRemainingID).getCustomName() != null)
                     {
-                        onCrimsonIsle = true;
-                        stringBiome = location06;
+                        time = String.format("Time: %s", Minecraft.getInstance().level.getEntity(timeRemainingID).getCustomName().getString());
                     }
                     else
                     {
-                        onCrimsonIsle = false;
+                        time = "Time:";
                     }
-                }
-            }
-
-            if(trackingBoss)
-            {
-                if(blazeFound)
-                {
-                    event.getGuiGraphics().drawString(Minecraft.getInstance().font, String.format("Blaze # of ArmorStands Found: %d", blazeCount), 50, 50, 0xFFFFFF);
-                    if(Minecraft.getInstance().level.getEntity(blazeNameID) != null)
-                    {
-                        if(Minecraft.getInstance().level.getEntity(blazeNameID).getCustomName() != null)
-                        {
-                            event.getGuiGraphics().drawString(Minecraft.getInstance().font, String.format("Name: %s", Minecraft.getInstance().level.getEntity(blazeNameID).getCustomName().getString()), 50, 60, 0xFFFFFF);
-                        }
-                        else
-                        {
-                            event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Name: NULL Custom Name", 50, 60, 0xFFFFFF);
-                        }
-                    }
-                    else
-                    {
-                        event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Name: NULL Entity", 50, 60, 0xFFFFFF);
-                    }
-                    if(Minecraft.getInstance().level.getEntity(blazeTimeRemainingID) != null)
-                    {
-                        if(Minecraft.getInstance().level.getEntity(blazeTimeRemainingID).getCustomName() != null)
-                        {
-                            event.getGuiGraphics().drawString(Minecraft.getInstance().font, String.format("Time: %s", Minecraft.getInstance().level.getEntity(blazeTimeRemainingID).getCustomName().getString()), 50, 70, 0xFFFFFF);
-                        }
-                        else
-                        {
-                            event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Time: NULL Custom Name", 50, 70, 0xFFFFFF);
-                        }
-                    }
-                    else
-                    {
-                        event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Time: NULL Entity", 50, 70, 0xFFFFFF);
-                    }
-                    if(Minecraft.getInstance().level.getEntity(blazeSpawnByID) != null)
-                    {
-                        if(Minecraft.getInstance().level.getEntity(blazeSpawnByID).getCustomName() != null)
-                        {
-                            event.getGuiGraphics().drawString(Minecraft.getInstance().font, String.format("Spawned by: %s", Minecraft.getInstance().level.getEntity(blazeSpawnByID).getCustomName().getString()), 50, 80, 0xFFFFFF);
-                        }
-                        else
-                        {
-                            event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Spawned by: NULL Custom Name", 50, 80, 0xFFFFFF);
-                        }
-                    }
-                    else
-                    {
-                        event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Spawned by: NULL Entity", 50, 80, 0xFFFFFF);
-
-                    }
-                    event.getGuiGraphics().drawString(Minecraft.getInstance().font, String.format("BossID: %d", blazeBossID), 50, 90, 0xFFFFFF);
-                    if(blazeBossUUID != null)
-                    {
-                        event.getGuiGraphics().drawString(Minecraft.getInstance().font, String.format("BossUUID: %s", blazeBossUUID.toString()), 50, 100, 0xFFFFFF);
-                    }
-                    else
-                    {
-                        event.getGuiGraphics().drawString(Minecraft.getInstance().font, "BossUUID: NULL UUID", 50, 100, 0xFFFFFF);
-                    }
-                    event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Boss Tracking", 50, 110, 0xFFFFFF);
                 }
                 else
                 {
-                    event.getGuiGraphics().drawString(Minecraft.getInstance().font, String.format("Skeleton # of ArmorStands Found: %d", skeletonCount), 50, 50, 0xFFFFFF);
-                    event.getGuiGraphics().drawString(Minecraft.getInstance().font, String.format("Piglin # of ArmorStands Found: %d", piglinCount), 50, 60, 0xFFFFFF);
-                    if(skeletonFound)
-                    {
-                        if(Minecraft.getInstance().level.getEntity(skeletonNameID) != null)
-                        {
-                            if(Minecraft.getInstance().level.getEntity(skeletonNameID).getCustomName() != null)
-                            {
-                                event.getGuiGraphics().drawString(Minecraft.getInstance().font, String.format("Name: %s", Minecraft.getInstance().level.getEntity(skeletonNameID).getCustomName().getString()), 50, 70, 0xFFFFFF);
-                            }
-                            else
-                            {
-                                event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Name: NULL Custom Name", 50, 70, 0xFFFFFF);
-                            }
-                        }
-                        else
-                        {
-                            event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Name: NULL Entity", 50, 70, 0xFFFFFF);
-                        }
-                    }
-
-                    if(piglinFound)
-                    {
-                        if(Minecraft.getInstance().level.getEntity(piglinNameID) != null)
-                        {
-                            if(Minecraft.getInstance().level.getEntity(piglinNameID).getCustomName() != null)
-                            {
-                                event.getGuiGraphics().drawString(Minecraft.getInstance().font, String.format("Name: %s", Minecraft.getInstance().level.getEntity(piglinNameID).getCustomName().getString()), 50, 80, 0xFFFFFF);
-                            }
-                            else
-                            {
-                                event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Name: NULL Custom Name", 50, 80, 0xFFFFFF);
-                            }
-                        }
-                        else
-                        {
-                            event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Name: NULL Entity", 50, 80, 0xFFFFFF);
-
-                        }
-                    }
-                    event.getGuiGraphics().drawString(Minecraft.getInstance().font, "Mini Tracking", 50, 90, 0xFFFFFF);
+                    time = "Time:";
                 }
+                if(Minecraft.getInstance().level.getEntity(spawnedByID) != null)
+                {
+                    if(Minecraft.getInstance().level.getEntity(spawnedByID).getCustomName() != null)
+                    {
+                        spawned = String.format("Spawned By: %s", Minecraft.getInstance().level.getEntity(spawnedByID).getCustomName().getString().split(": ")[1]);
+                    }
+                    else
+                    {
+                        spawned = "Spawned By:";
+                    }
+                }
+                else
+                {
+                    spawned = "Spawned By:";
+                }
+                type = "Boss Tracking";
+
+                //Calculate scale
+                float scaleWidth = 1.0f;
+                float scaleHeight = 1.0f;
+                List<Integer> textWidths = List.of(font.width(title)+(widthPadding*2),font.width(name)+(widthPadding*2),font.width(time)+(widthPadding*2),font.width(spawned)+(widthPadding*2),font.width(type)+(widthPadding*2));
+                int textHeight = 5 * font.lineHeight + (heightPadding*2);
+                int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
+                if(textHeight > displayHeight)
+                {
+                    scaleHeight = (float) displayHeight / textHeight;
+                }
+                if(maxWidth > displayWidth)
+                {
+                    scaleWidth = (float) displayWidth / maxWidth;
+                }
+                float scale = Math.min(scaleWidth, scaleHeight);
+                graphics.pose().pushPose();
+                graphics.pose().scale(scale, scale, 1.0f);
+                graphics.drawString(font, title, (x + widthPadding)/scale, (y + heightPadding + (height*0))/scale, colorText, false);
+                graphics.drawString(font, name, (x + widthPadding)/scale, (y + heightPadding + (height*1))/scale, colorText, false);
+                graphics.drawString(font, time, (x + widthPadding)/scale, (y + heightPadding + (height*2))/scale, colorText, false);
+                graphics.drawString(font, spawned, (x + widthPadding)/scale, (y + heightPadding + (height*3))/scale, colorText, false);
+                graphics.drawString(font, type, (x + widthPadding)/scale, (y + heightPadding + (height*4))/scale, colorText, false);
+                graphics.pose().popPose();
+            }
+            else if(miniFound)
+            {
+                String nameSkeleton = "Name:";
+                String namePiglin = "Name:";
+                String time = "Time:";
+                String type;
+                if(skeletonFound)
+                {
+                    if(Minecraft.getInstance().level.getEntity(skeletonNameID) != null)
+                    {
+                        if(Minecraft.getInstance().level.getEntity(skeletonNameID).getCustomName() != null)
+                        {
+                            nameSkeleton = String.format("Name: %s", Minecraft.getInstance().level.getEntity(skeletonNameID).getCustomName().getString());
+                        }
+                        else
+                        {
+                            nameSkeleton = "Name:";
+                        }
+                    }
+                    else
+                    {
+                        nameSkeleton = "Name:";
+                    }
+                    if(Minecraft.getInstance().level.getEntity(skeletonTimeRemainingID) != null)
+                    {
+                        if(Minecraft.getInstance().level.getEntity(skeletonTimeRemainingID).getCustomName() != null)
+                        {
+                            time = String.format("Time: %s", Minecraft.getInstance().level.getEntity(skeletonTimeRemainingID).getCustomName().getString());
+                        }
+                        else
+                        {
+                            time = "Time:";
+                        }
+                    }
+                    else
+                    {
+                        time = "Time:";
+                    }
+                }
+
+                if(piglinFound)
+                {
+                    if(Minecraft.getInstance().level.getEntity(piglinNameID) != null)
+                    {
+                        if(Minecraft.getInstance().level.getEntity(piglinNameID).getCustomName() != null)
+                        {
+                            namePiglin = String.format("Name: %s", Minecraft.getInstance().level.getEntity(piglinNameID).getCustomName().getString());
+                        }
+                        else
+                        {
+                            namePiglin = "Name:";
+                        }
+                    }
+                    else
+                    {
+                        namePiglin = "Name:";
+                    }
+                    if(Minecraft.getInstance().level.getEntity(piglinTimeRemainingID) != null)
+                    {
+                        if(Minecraft.getInstance().level.getEntity(piglinTimeRemainingID).getCustomName() != null)
+                        {
+                            time = String.format("Time: %s", Minecraft.getInstance().level.getEntity(piglinTimeRemainingID).getCustomName().getString());
+                        }
+                        else
+                        {
+                            time = "Time:";
+                        }
+                    }
+                    else
+                    {
+                        time = "Time:";
+                    }
+                }
+                type = "Mini Tracking";
+
+                //Calculate scale
+                float scaleWidth = 1.0f;
+                float scaleHeight = 1.0f;
+                List<Integer> textWidths = List.of(font.width(title)+(widthPadding*2),font.width(nameSkeleton)+(widthPadding*2),font.width(namePiglin)+(widthPadding*2),font.width(time)+(widthPadding*2),font.width(type)+(widthPadding*2));
+                int textHeight = 5 * font.lineHeight + (heightPadding*2);
+                int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
+                if(textHeight > displayHeight)
+                {
+                    scaleHeight = (float) displayHeight / textHeight;
+                }
+                if(maxWidth > displayWidth)
+                {
+                    scaleWidth = (float) displayWidth / maxWidth;
+                }
+                float scale = Math.min(scaleWidth, scaleHeight);
+                graphics.pose().pushPose();
+                graphics.pose().scale(scale, scale, 1.0f);
+                graphics.drawString(font, title, (x + widthPadding)/scale, (y + heightPadding + (height*0))/scale, colorText, false);
+                graphics.drawString(font, nameSkeleton, (x + widthPadding)/scale, (y + heightPadding + (height*1))/scale, colorText, false);
+                graphics.drawString(font, namePiglin, (x + widthPadding)/scale, (y + heightPadding + (height*2))/scale, colorText, false);
+                graphics.drawString(font, time, (x + widthPadding)/scale, (y + heightPadding + (height*3))/scale, colorText, false);
+                graphics.drawString(font, type, (x + widthPadding)/scale, (y + heightPadding + (height*4))/scale, colorText, false);
+                graphics.pose().popPose();
             }
         }
     }
