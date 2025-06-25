@@ -57,7 +57,7 @@ public class SlayerTrackerClientEvent {
     private static boolean needToResetTrackers = false;
     private static boolean advancedReset = false;
     //Used for slowing processing
-    private static int TRACKCOOLDOWNMAX = 10;
+    private static final int TRACKCOOLDOWNMAX = 10;
     private static int trackCooldown = 0;
     //Read scoreboard object when world switch
     public static boolean updateWorld = false;
@@ -65,8 +65,8 @@ public class SlayerTrackerClientEvent {
     //Rendering Variables
     public static int x = 20;
     public static int y = 50;
-    private static int widthPadding = 2;
-    private static int heightPadding = 2;
+    private static final int WIDTHPADDING = 2;
+    private static final int HEIGHTPADDING = 2;
     public static int displayWidth = 100;
     public static int displayHeight = 50;
 
@@ -133,12 +133,12 @@ public class SlayerTrackerClientEvent {
                 {
                     switch (slayerType)
                     {
-                        case 0 : {trackingZombieBoss = true;}
-                        case 1 : {trackingSpiderBoss = true;}
-                        case 2 : {trackingWolfBoss = true;}
-                        case 3 : {trackingEndermanBoss = true;}
-                        case 4 : {trackingVampireBoss = true;}
-                        case 5 : {trackingBlazeBoss = true;}
+                        case 0 : {trackingZombieBoss = true;break;}
+                        case 1 : {trackingSpiderBoss = true;break;}
+                        case 2 : {trackingWolfBoss = true;break;}
+                        case 3 : {trackingEndermanBoss = true;break;}
+                        case 4 : {trackingVampireBoss = true;break;}
+                        case 5 : {trackingBlazeBoss = true;break;}
                     }
                     trackingBoss = true;
                     break;
@@ -739,8 +739,8 @@ public class SlayerTrackerClientEvent {
             //Calculate scale
             float scaleWidth = 1.0f;
             float scaleHeight = 1.0f;
-            List<Integer> textWidths = List.of(font.width(title)+(widthPadding*2));
-            int textHeight = 1 * font.lineHeight + (heightPadding*2);
+            List<Integer> textWidths = List.of(font.width(title)+(WIDTHPADDING*2));
+            int textHeight = font.lineHeight + (HEIGHTPADDING*2);
             int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
             if(textHeight > displayHeight)
             {
@@ -753,7 +753,7 @@ public class SlayerTrackerClientEvent {
             float scale = Math.min(scaleWidth, scaleHeight);
             graphics.pose().pushPose();
             graphics.pose().scale(scale, scale, 1.0f);
-            graphics.drawString(font, title, (x + widthPadding)/scale, (y + heightPadding + (height*0))/scale, colorText, false);
+            graphics.drawString(font, title, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING)/scale, colorText, false);
             graphics.pose().popPose();
         }
         if(activeQuest && bossSlain && !trackingBoss)
@@ -762,8 +762,8 @@ public class SlayerTrackerClientEvent {
             //Calculate scale
             float scaleWidth = 1.0f;
             float scaleHeight = 1.0f;
-            List<Integer> textWidths = List.of(font.width(title)+(widthPadding*2), font.width(ending)+(widthPadding*2));
-            int textHeight = 2 * font.lineHeight + (heightPadding*2);
+            List<Integer> textWidths = List.of(font.width(title)+(WIDTHPADDING*2), font.width(ending)+(WIDTHPADDING*2));
+            int textHeight = 2 * font.lineHeight + (HEIGHTPADDING*2);
             int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
             if(textHeight > displayHeight)
             {
@@ -776,8 +776,8 @@ public class SlayerTrackerClientEvent {
             float scale = Math.min(scaleWidth, scaleHeight);
             graphics.pose().pushPose();
             graphics.pose().scale(scale, scale, 1.0f);
-            graphics.drawString(font, title, (x + widthPadding)/scale, (y + heightPadding + (height*0))/scale, colorText, false);
-            graphics.drawString(font, ending, (x + widthPadding)/scale, (y + heightPadding + (height*1))/scale, colorText, false);
+            graphics.drawString(font, title, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING)/scale, colorText, false);
+            graphics.drawString(font, ending, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + height)/scale, colorText, false);
             graphics.pose().popPose();
         }
         if(activeQuest &&!bossSlain && trackingBoss)
@@ -839,8 +839,8 @@ public class SlayerTrackerClientEvent {
                 //Calculate scale
                 float scaleWidth = 1.0f;
                 float scaleHeight = 1.0f;
-                List<Integer> textWidths = List.of(font.width(title)+(widthPadding*2),font.width(name)+(widthPadding*2),font.width(time)+(widthPadding*2),font.width(spawned)+(widthPadding*2),font.width(type)+(widthPadding*2));
-                int textHeight = 5 * font.lineHeight + (heightPadding*2);
+                List<Integer> textWidths = List.of(font.width(title)+(WIDTHPADDING*2),font.width(name)+(WIDTHPADDING*2),font.width(time)+(WIDTHPADDING*2),font.width(spawned)+(WIDTHPADDING*2),font.width(type)+(WIDTHPADDING*2));
+                int textHeight = 5 * font.lineHeight + (HEIGHTPADDING*2);
                 int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
                 if(textHeight > displayHeight)
                 {
@@ -853,11 +853,11 @@ public class SlayerTrackerClientEvent {
                 float scale = Math.min(scaleWidth, scaleHeight);
                 graphics.pose().pushPose();
                 graphics.pose().scale(scale, scale, 1.0f);
-                graphics.drawString(font, title, (x + widthPadding)/scale, (y + heightPadding + (height*0))/scale, colorText, false);
-                graphics.drawString(font, name, (x + widthPadding)/scale, (y + heightPadding + (height*1))/scale, colorText, false);
-                graphics.drawString(font, time, (x + widthPadding)/scale, (y + heightPadding + (height*2))/scale, colorText, false);
-                graphics.drawString(font, spawned, (x + widthPadding)/scale, (y + heightPadding + (height*3))/scale, colorText, false);
-                graphics.drawString(font, type, (x + widthPadding)/scale, (y + heightPadding + (height*4))/scale, colorText, false);
+                graphics.drawString(font, title, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING)/scale, colorText, false);
+                graphics.drawString(font, name, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + height)/scale, colorText, false);
+                graphics.drawString(font, time, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*2))/scale, colorText, false);
+                graphics.drawString(font, spawned, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*3))/scale, colorText, false);
+                graphics.drawString(font, type, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*4))/scale, colorText, false);
                 graphics.pose().popPose();
             }
             else if(miniFound)
@@ -868,11 +868,14 @@ public class SlayerTrackerClientEvent {
                 String type;
                 if(skeletonFound)
                 {
-                    if(Minecraft.getInstance().level.getEntity(skeletonNameID) != null)
+                    Entity skeletonName = Minecraft.getInstance().level.getEntity(skeletonNameID);
+                    Entity skeletonTime = Minecraft.getInstance().level.getEntity(skeletonTimeRemainingID);
+                    if(skeletonName != null)
                     {
-                        if(Minecraft.getInstance().level.getEntity(skeletonNameID).getCustomName() != null)
+                        Component name = skeletonName.getCustomName();
+                        if(name != null)
                         {
-                            nameSkeleton = String.format("Name: %s", Minecraft.getInstance().level.getEntity(skeletonNameID).getCustomName().getString());
+                            nameSkeleton = String.format("Name: %s", name.getString());
                         }
                         else
                         {
@@ -883,11 +886,12 @@ public class SlayerTrackerClientEvent {
                     {
                         nameSkeleton = "Name:";
                     }
-                    if(Minecraft.getInstance().level.getEntity(skeletonTimeRemainingID) != null)
+                    if(skeletonTime != null)
                     {
-                        if(Minecraft.getInstance().level.getEntity(skeletonTimeRemainingID).getCustomName() != null)
+                        Component name = skeletonTime.getCustomName();
+                        if(name != null)
                         {
-                            time = String.format("Time: %s", Minecraft.getInstance().level.getEntity(skeletonTimeRemainingID).getCustomName().getString());
+                            time = String.format("Time: %s", name.getString());
                         }
                         else
                         {
@@ -902,11 +906,14 @@ public class SlayerTrackerClientEvent {
 
                 if(piglinFound)
                 {
-                    if(Minecraft.getInstance().level.getEntity(piglinNameID) != null)
+                    Entity piglinName = Minecraft.getInstance().level.getEntity(piglinNameID);
+                    Entity piglinTime = Minecraft.getInstance().level.getEntity(piglinTimeRemainingID);
+                    if(piglinName != null)
                     {
-                        if(Minecraft.getInstance().level.getEntity(piglinNameID).getCustomName() != null)
+                        Component name = piglinName.getCustomName();
+                        if(name != null)
                         {
-                            namePiglin = String.format("Name: %s", Minecraft.getInstance().level.getEntity(piglinNameID).getCustomName().getString());
+                            namePiglin = String.format("Name: %s", name.getString());
                         }
                         else
                         {
@@ -917,11 +924,12 @@ public class SlayerTrackerClientEvent {
                     {
                         namePiglin = "Name:";
                     }
-                    if(Minecraft.getInstance().level.getEntity(piglinTimeRemainingID) != null)
+                    if(piglinTime != null)
                     {
-                        if(Minecraft.getInstance().level.getEntity(piglinTimeRemainingID).getCustomName() != null)
+                        Component name = piglinTime.getCustomName();
+                        if(name != null)
                         {
-                            time = String.format("Time: %s", Minecraft.getInstance().level.getEntity(piglinTimeRemainingID).getCustomName().getString());
+                            time = String.format("Time: %s", name.getString());
                         }
                         else
                         {
@@ -938,8 +946,8 @@ public class SlayerTrackerClientEvent {
                 //Calculate scale
                 float scaleWidth = 1.0f;
                 float scaleHeight = 1.0f;
-                List<Integer> textWidths = List.of(font.width(title)+(widthPadding*2),font.width(nameSkeleton)+(widthPadding*2),font.width(namePiglin)+(widthPadding*2),font.width(time)+(widthPadding*2),font.width(type)+(widthPadding*2));
-                int textHeight = 5 * font.lineHeight + (heightPadding*2);
+                List<Integer> textWidths = List.of(font.width(title)+(WIDTHPADDING*2),font.width(nameSkeleton)+(WIDTHPADDING*2),font.width(namePiglin)+(WIDTHPADDING*2),font.width(time)+(WIDTHPADDING*2),font.width(type)+(WIDTHPADDING*2));
+                int textHeight = 5 * font.lineHeight + (HEIGHTPADDING*2);
                 int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
                 if(textHeight > displayHeight)
                 {
@@ -952,11 +960,11 @@ public class SlayerTrackerClientEvent {
                 float scale = Math.min(scaleWidth, scaleHeight);
                 graphics.pose().pushPose();
                 graphics.pose().scale(scale, scale, 1.0f);
-                graphics.drawString(font, title, (x + widthPadding)/scale, (y + heightPadding + (height*0))/scale, colorText, false);
-                graphics.drawString(font, nameSkeleton, (x + widthPadding)/scale, (y + heightPadding + (height*1))/scale, colorText, false);
-                graphics.drawString(font, namePiglin, (x + widthPadding)/scale, (y + heightPadding + (height*2))/scale, colorText, false);
-                graphics.drawString(font, time, (x + widthPadding)/scale, (y + heightPadding + (height*3))/scale, colorText, false);
-                graphics.drawString(font, type, (x + widthPadding)/scale, (y + heightPadding + (height*4))/scale, colorText, false);
+                graphics.drawString(font, title, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING)/scale, colorText, false);
+                graphics.drawString(font, nameSkeleton, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + height)/scale, colorText, false);
+                graphics.drawString(font, namePiglin, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*2))/scale, colorText, false);
+                graphics.drawString(font, time, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*3))/scale, colorText, false);
+                graphics.drawString(font, type, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*4))/scale, colorText, false);
                 graphics.pose().popPose();
             }
         }

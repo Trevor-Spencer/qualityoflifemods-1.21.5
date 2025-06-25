@@ -23,13 +23,6 @@ public class MovementVisualClientEvent {
     public static final ResourceLocation GUI_R_MOUSE_PRESS = ResourceLocation.fromNamespaceAndPath(QualityofLifeMods.MOD_ID, "textures/gui/movementvisual/movementvisualrmousepress_gui.png");
     public static final ResourceLocation GUI_L_MOUSE_PRESS = ResourceLocation.fromNamespaceAndPath(QualityofLifeMods.MOD_ID, "textures/gui/movementvisual/movementvisuallmousepress_gui.png");
 
-    public static final int imageWidth = 100;
-    public static final int imageHeight = 100;
-    public static final int drawImageWidth = imageWidth/2;
-    public static final int drawImageHeight = imageHeight/2;
-    public static int x;
-    public static int y;
-
     public static boolean wKeyPressed = false;
     public static boolean aKeyPressed = false;
     public static boolean sKeyPressed = false;

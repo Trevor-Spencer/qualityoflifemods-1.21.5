@@ -7,7 +7,6 @@ import net.minecraft.world.scores.DisplaySlot;
 import net.minecraft.world.scores.Objective;
 import org.slf4j.Logger;
 import static net.gamma.qualityoflife.event.SlayerTrackerClientEvent.updateWorld;
-import java.util.UUID;
 
 public class SlayerUtils {
     public static void logMobs(int boss_id, int name_id, int spawnedBy_id, int timeRemaining_id, boolean advanced)
@@ -36,11 +35,7 @@ public class SlayerUtils {
         updateWorld = false;
         Objective obj = Minecraft.getInstance().level.getScoreboard().getDisplayObjective(DisplaySlot.SIDEBAR);
         if(obj != null) {
-            if(obj.getName().contains("SBScoreboard"))
-            {
-
-                return true;
-            }
+            return obj.getName().contains("SBScoreboard");
         }
         return false;
     }

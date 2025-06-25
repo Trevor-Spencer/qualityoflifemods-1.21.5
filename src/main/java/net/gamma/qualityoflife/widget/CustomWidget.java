@@ -1,0 +1,402 @@
+package net.gamma.qualityoflife.widget;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.network.chat.Component;
+
+import java.util.function.BooleanSupplier;
+
+import static net.gamma.qualityoflife.util.CursorUtils.setCursor;
+import static net.gamma.qualityoflife.util.WidgetUtils.*;
+
+public class CustomWidget extends AbstractWidget {
+    private final BooleanSupplier toRender;
+    public static int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+    public static int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+    public static int PADDING = 4;
+    public double normalizedX;
+    public double normalizedY;
+    public double normalizedWidth;
+    public double normalizedHeight;
+
+    public double mouseOffsetX;
+    public double mouseOffsetY;
+    public boolean isDragging = false;
+
+    public int RESIZE_MARGIN = 6;
+    public boolean isResizing = false;
+    public enum RESIZE_DIRECTION {NONE, UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT}
+    public RESIZE_DIRECTION resizeDirection = RESIZE_DIRECTION.NONE;
+
+    public CustomWidget(int x, int y, int width, int height, Component message, BooleanSupplier toRender) {
+        super(x, y, width, height, message);
+        screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+
+        if(x+width > screenWidth)
+        {
+            setX(Math.max(screenWidth-width, 0));
+            normalizedX = getNormalized(Math.max(screenWidth-width, 0), screenWidth);
+        }
+        else
+        {
+            setX(x);
+            normalizedX = getNormalized(x, screenWidth);
+        }
+        if(y+height > screenHeight)
+        {
+            setY(Math.max(screenHeight-height, 0));
+            normalizedY = getNormalized(Math.max(screenHeight-height, 0), screenHeight);
+        }
+        else
+        {
+            setY(y);
+            normalizedY = getNormalized(y, screenHeight);
+        }
+        if(getWidth() > screenWidth)
+        {
+            setWidth(screenWidth);
+            normalizedWidth = 1d;
+        }
+        else
+        {
+            setWidth(width);
+            normalizedWidth = getNormalized(width, screenWidth);
+        }
+        if(getHeight() > screenHeight)
+        {
+            setHeight(screenHeight);
+            normalizedHeight = 1d;
+        }
+        else
+        {
+            setHeight(height);
+            normalizedHeight = getNormalized(height, screenHeight);
+        }
+        setMessage(message);
+        this.toRender = toRender;
+    }
+
+    @Override
+    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        if(!toRender.getAsBoolean()) {active = false; return;}
+        active = true;
+        screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+        int realX = getReal(normalizedX, screenWidth);
+        int realY = getReal(normalizedY, screenHeight);
+        int realWidth = getReal(normalizedWidth, screenWidth);
+        int realHeight = getReal(normalizedHeight, screenHeight);
+        setX(realX);
+        setY(realY);
+        setWidth(realWidth);
+        setHeight(realHeight);
+        guiGraphics.fill(realX, realY, realX + realWidth, realY + realHeight, 0x80FFFFFF);
+        float scaleWidth = 1.0f;
+        float scaleHeight = 1.0f;
+        int textWidth = Minecraft.getInstance().font.width(getMessage().getString()) + PADDING*2;
+        int textHeight = Minecraft.getInstance().font.lineHeight + PADDING*2;
+        if(textHeight > realHeight)
+        {
+            scaleHeight = (float) realHeight / textHeight;
+        }
+        if(textWidth > realWidth)
+        {
+            scaleWidth = (float) realWidth / textWidth;
+        }
+        float scale = Math.min(scaleWidth, scaleHeight);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(scale, scale, 1.0f);
+        guiGraphics.drawString(Minecraft.getInstance().font, getMessage().getString(),(realX + PADDING*scale + (float)realWidth/2 - textWidth*scale/2)/scale,(realY + PADDING*scale + (float)realHeight/2 - textHeight*scale/2)/scale,0xFF0000, false);
+        guiGraphics.pose().popPose();
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button)
+    {
+        screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+        if(isNearLeftTopEdge(mouseX, getReal(normalizedX, screenWidth), mouseY, getReal(normalizedY, screenHeight), RESIZE_MARGIN))
+        {
+            isResizing = true;
+            resizeDirection = RESIZE_DIRECTION.UPLEFT;
+            setCursor(3);
+            return true;
+        }
+        else if(isNearLeftBottomEdge(mouseX, getReal(normalizedX, screenWidth), mouseY, getReal(normalizedY, screenHeight), getReal(normalizedHeight, screenHeight), RESIZE_MARGIN))
+        {
+            isResizing = true;
+            resizeDirection = RESIZE_DIRECTION.DOWNLEFT;
+            setCursor(4);
+            return true;
+        }
+        else if(isNearRightTopEdge(mouseX, getReal(normalizedX, screenWidth), getReal(normalizedWidth, screenWidth), mouseY, getReal(normalizedY, screenHeight), RESIZE_MARGIN))
+        {
+            isResizing = true;
+            resizeDirection = RESIZE_DIRECTION.UPRIGHT;
+            setCursor(4);
+            return true;
+        }
+        else if(isNearRightBottomEdge(mouseX, getReal(normalizedX, screenWidth), getReal(normalizedWidth, screenWidth), mouseY, getReal(normalizedY, screenHeight), getReal(normalizedHeight, screenHeight), RESIZE_MARGIN))
+        {
+            isResizing = true;
+            resizeDirection = RESIZE_DIRECTION.DOWNRIGHT;
+            setCursor(3);
+            return true;
+        }
+        else if(isNearLeftEdge(mouseX, getReal(normalizedX, screenWidth), RESIZE_MARGIN))
+        {
+            isResizing = true;
+            resizeDirection = RESIZE_DIRECTION.LEFT;
+            setCursor(2);
+            return true;
+        }
+        else if(isNearRightEdge(mouseX, getReal(normalizedX, screenWidth), getReal(normalizedWidth, screenWidth), RESIZE_MARGIN))
+        {
+            isResizing = true;
+            resizeDirection = RESIZE_DIRECTION.RIGHT;
+            setCursor(2);
+            return true;
+        }
+        else if(isNearTopEdge(mouseY, getReal(normalizedY, screenHeight), RESIZE_MARGIN))
+        {
+            isResizing = true;
+            resizeDirection = RESIZE_DIRECTION.UP;
+            setCursor(1);
+            return true;
+        }
+        else if(isNearBottomEdge(mouseY, getReal(normalizedY, screenHeight), getReal(normalizedHeight, screenHeight), RESIZE_MARGIN))
+        {
+            isResizing = true;
+            resizeDirection = RESIZE_DIRECTION.DOWN;
+            setCursor(1);
+            return true;
+        }
+        else if(isMouseOver(mouseX, mouseY))
+        {
+            isDragging = true;
+            mouseOffsetX = this.getX() - mouseX;
+            mouseOffsetY = this.getY() - mouseY;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isMouseOver(double mouseX, double mouseY) {
+        return this.active && this.visible && mouseX >= getReal(normalizedX, screenWidth) && mouseY >= getReal(normalizedY, screenHeight) && mouseX < (getReal(normalizedX, screenWidth) + getReal(normalizedWidth, screenWidth)) && mouseY < (getReal(normalizedY, screenHeight) + getReal(normalizedHeight, screenHeight));
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+        if(isResizing)
+        {
+            switch(resizeDirection)
+            {
+                case LEFT:
+                {
+                    int newX = (int)mouseX;
+                    int maxX = getX() + getWidth();
+                    newX = Math.max(0, Math.min(newX, maxX-10));
+                    int newWidth = Math.max(10, maxX - newX);
+                    int finalWidth = Math.min(screenWidth - newX, newWidth);
+
+                    setX(newX);
+                    setWidth(finalWidth);
+                    normalizedX = getNormalized(newX, screenWidth);
+                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    break;
+                }
+                case RIGHT:
+                {
+                    int newX = (int)mouseX;
+                    int smallestX = getX();
+                    int newWidth = Math.max(10, newX - smallestX);
+                    int finalWidth = Math.min(screenWidth - smallestX, newWidth);
+
+                    setWidth(finalWidth);
+                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    break;
+                }
+                case UP:
+                {
+                    int newY = (int)mouseY;
+                    int maxY = getY() + getHeight();
+                    newY = Math.max(0, Math.min(newY, maxY - 10));
+                    int newHeight = Math.max(10, maxY - newY);
+                    int finalHeight = Math.min(screenHeight - newY, newHeight);
+
+                    setY(newY);
+                    setHeight(finalHeight);
+                    normalizedY  = getNormalized(newY, screenHeight);
+                    normalizedHeight = getNormalized(finalHeight, screenHeight);
+                    break;
+                }
+                case DOWN:
+                {
+                    int newY = (int)mouseY;
+                    int smallestY = getY();
+                    int newHeight = Math.max(10, newY - smallestY);
+                    int finalHeight = Math.min(screenHeight - smallestY, newHeight);
+
+                    setHeight(finalHeight);
+                    normalizedHeight = getNormalized(finalHeight, screenHeight);
+                    break;
+                }
+                case UPLEFT:
+                {
+                    //Up Control
+                    int newY = (int)mouseY;
+                    int maxY = getY() + getHeight();
+                    newY = Math.max(0, Math.min(newY, maxY - 10));
+                    int newHeight = Math.max(10, maxY - newY);
+                    int finalHeight = Math.min(screenHeight - newY, newHeight);
+
+                    setY(newY);
+                    setHeight(finalHeight);
+                    normalizedY  = getNormalized(newY, screenHeight);
+                    normalizedHeight = getNormalized(finalHeight, screenHeight);
+
+                    //Left Control
+                    int newX = (int)mouseX;
+                    int maxX = getX() + getWidth();
+                    newX = Math.max(0, Math.min(newX, maxX-10));
+                    int newWidth = Math.max(10, maxX - newX);
+                    int finalWidth = Math.min(screenWidth - newX, newWidth);
+
+                    setX(newX);
+                    setWidth(finalWidth);
+                    normalizedX = getNormalized(newX, screenWidth);
+                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    break;
+
+                }
+                case UPRIGHT:
+                {
+                    //Up Control
+                    int newY = (int)mouseY;
+                    int maxY = getY() + getHeight();
+                    newY = Math.max(0, Math.min(newY, maxY - 10));
+                    int newHeight = Math.max(10, maxY - newY);
+                    int finalHeight = Math.min(screenHeight - newY, newHeight);
+
+                    setY(newY);
+                    setHeight(finalHeight);
+                    normalizedY  = getNormalized(newY, screenHeight);
+                    normalizedHeight = getNormalized(finalHeight, screenHeight);
+
+                    //Right Control
+                    int newX = (int)mouseX;
+                    int smallestX = getX();
+                    int newWidth = Math.max(10, newX - smallestX);
+                    int finalWidth = Math.min(screenWidth - smallestX, newWidth);
+
+                    setWidth(finalWidth);
+                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    break;
+                }
+                case DOWNLEFT:
+                {
+                    //Down Control
+                    int newY = (int)mouseY;
+                    int smallestY = getY();
+                    int newHeight = Math.max(10, newY - smallestY);
+                    int finalHeight = Math.min(screenHeight - smallestY, newHeight);
+
+                    setHeight(finalHeight);
+                    normalizedHeight = getNormalized(finalHeight, screenHeight);
+
+                    //Left Control
+                    int newX = (int)mouseX;
+                    int maxX = getX() + getWidth();
+                    newX = Math.max(0, Math.min(newX, maxX-10));
+                    int newWidth = Math.max(10, maxX - newX);
+                    int finalWidth = Math.min(screenWidth - newX, newWidth);
+
+                    setX(newX);
+                    setWidth(finalWidth);
+                    normalizedX = getNormalized(newX, screenWidth);
+                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    break;
+                }
+                case DOWNRIGHT:
+                {
+                    //Down Control
+                    int newY = (int)mouseY;
+                    int smallestY = getY();
+                    int newHeight = Math.max(10, newY - smallestY);
+                    int finalHeight = Math.min(screenHeight - smallestY, newHeight);
+
+                    setHeight(finalHeight);
+                    normalizedHeight = getNormalized(finalHeight, screenHeight);
+
+                    //Right Control
+                    int newX = (int)mouseX;
+                    int smallestX = getX();
+                    int newWidth = Math.max(10, newX - smallestX);
+                    int finalWidth = Math.min(screenWidth - smallestX, newWidth);
+
+                    setWidth(finalWidth);
+                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    break;
+                }
+            }
+            return true;
+        }
+        if(!isDragging){return false;}
+
+        if(mouseX + mouseOffsetX < 0)
+        {
+            this.setX(0);
+            normalizedX = 0d;
+        }
+        else if(mouseX + mouseOffsetX + getReal(normalizedWidth, screenWidth) > screenWidth)
+        {
+            int newX = screenWidth-getReal(normalizedWidth, screenWidth);
+            this.setX(newX);
+            normalizedX = getNormalized(newX, screenWidth);
+        }
+        else
+        {
+            int newX = (int)(mouseX + mouseOffsetX);
+            this.setX(newX);
+            normalizedX = getNormalized(newX, screenWidth);
+        }
+        if(mouseY + mouseOffsetY < 0)
+        {
+            this.setY(0);
+            normalizedY = 0d;
+        }
+        else if(mouseY + mouseOffsetY + getReal(normalizedHeight, screenHeight) > screenHeight)
+        {
+            int newY = screenHeight-getReal(normalizedHeight, screenHeight);
+            this.setY(newY);
+            normalizedY = getNormalized(newY, screenHeight);
+        }
+        else
+        {
+            int newY = (int)(mouseY + mouseOffsetY);
+            this.setY(newY);
+            normalizedY = getNormalized(newY, screenHeight);
+        }
+        return true;
+    }
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        isDragging = false;
+        isResizing = false;
+        mouseOffsetX = 0;
+        mouseOffsetY = 0;
+        setCursor(0);
+        return true;
+    }
+
+    @Override
+    protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+
+    }
+}
