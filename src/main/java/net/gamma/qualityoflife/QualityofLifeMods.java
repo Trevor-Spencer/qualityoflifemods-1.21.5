@@ -15,6 +15,9 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
+import static net.gamma.qualityoflife.widget.ManagerWidget.COORDINATESWIDGET;
+import static net.gamma.qualityoflife.widget.ManagerWidget.MOVEMENTVISUALWIDGET;
+
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(QualityofLifeMods.MOD_ID)
 public class QualityofLifeMods

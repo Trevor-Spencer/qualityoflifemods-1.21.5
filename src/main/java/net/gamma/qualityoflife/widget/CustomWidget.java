@@ -1,11 +1,16 @@
 package net.gamma.qualityoflife.widget;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.function.BooleanSupplier;
 
 import static net.gamma.qualityoflife.util.CursorUtils.setCursor;
@@ -34,49 +39,42 @@ public class CustomWidget extends AbstractWidget {
         super(x, y, width, height, message);
         screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-
-        if(x+width > screenWidth)
-        {
-            setX(Math.max(screenWidth-width, 0));
-            normalizedX = getNormalized(Math.max(screenWidth-width, 0), screenWidth);
-        }
-        else
-        {
-            setX(x);
-            normalizedX = getNormalized(x, screenWidth);
-        }
-        if(y+height > screenHeight)
-        {
-            setY(Math.max(screenHeight-height, 0));
-            normalizedY = getNormalized(Math.max(screenHeight-height, 0), screenHeight);
-        }
-        else
-        {
-            setY(y);
-            normalizedY = getNormalized(y, screenHeight);
-        }
-        if(getWidth() > screenWidth)
-        {
-            setWidth(screenWidth);
-            normalizedWidth = 1d;
-        }
-        else
-        {
-            setWidth(width);
-            normalizedWidth = getNormalized(width, screenWidth);
-        }
-        if(getHeight() > screenHeight)
-        {
-            setHeight(screenHeight);
-            normalizedHeight = 1d;
-        }
-        else
-        {
-            setHeight(height);
-            normalizedHeight = getNormalized(height, screenHeight);
-        }
-        setMessage(message);
+        normalizedX = getNormalized(x, screenWidth);
+        normalizedY = getNormalized(y, screenHeight);
+        normalizedWidth = getNormalized(width, screenWidth);
+        normalizedHeight = getNormalized(height, screenHeight);
         this.toRender = toRender;
+    }
+
+    public static CustomWidget readIn(String filename, Component message, BooleanSupplier toRender)
+    {
+        ObjectMapper objectMapper = new ObjectMapper();
+        double nX;
+        double nY;
+        double nWidth;
+        double nHeight;
+        try
+        {
+            JsonNode jsonNode = objectMapper.readTree(new File(filename));
+            nX = jsonNode.has("normalizedX") ? jsonNode.get("normalizedX").asDouble() : 0d;
+            nY = jsonNode.has("normalizedY") ? jsonNode.get("normalizedY").asDouble() : 0d;
+            nWidth = jsonNode.has("normalizedWidth") ? jsonNode.get("normalizedWidth").asDouble() : 0.1d;
+            nHeight = jsonNode.has("normalizedHeight") ? jsonNode.get("normalizedHeight").asDouble() : 0.1d;
+        } catch(IOException exception)
+        {
+            nX = 0;
+            nY = 0;
+            nWidth = 0.1d;
+            nHeight = 0.1d;
+        }
+        screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+        int x = getReal(nX, screenWidth);
+        int y = getReal(nY, screenHeight);
+        int width = getReal(nWidth, screenWidth);
+        int height = getReal(nHeight, screenHeight);
+
+        return new CustomWidget(x, y, width, height, message, toRender);
     }
 
     @Override
@@ -397,6 +395,21 @@ public class CustomWidget extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+
+    }
+
+    public void writeJson(String filename)
+    {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode jsonNode = objectMapper.createObjectNode();
+        jsonNode.put("normalizedX", normalizedX);
+        jsonNode.put("normalizedY", normalizedY);
+        jsonNode.put("normalizedWidth", normalizedWidth);
+        jsonNode.put("normalizedHeight", normalizedHeight);
+        try
+        {
+            objectMapper.writeValue(new File(filename), jsonNode);
+        } catch(IOException exception) {}
 
     }
 }

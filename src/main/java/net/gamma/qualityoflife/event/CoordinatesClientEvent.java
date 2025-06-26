@@ -78,7 +78,7 @@ public class CoordinatesClientEvent {
             float scaleWidth = 1.0f;
             float scaleHeight = 1.0f;
             Font font = Minecraft.getInstance().font;
-            graphics.fill(realX, realY, realX + realWidth, realY + realHeight, 0x80FF0000);
+            graphics.fill(realX, realY, realX + realWidth, realY + realHeight, 0x805C5C5C);
             List<Integer> textWidths = List.of(font.width(coordinates[0]) + 2*HORIZONTALPADDING, font.width(coordinates[1]) + 2*HORIZONTALPADDING,font.width(coordinates[2]) + 2*HORIZONTALPADDING, font.width(stringBiome) + 2*HORIZONTALPADDING);
             int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
             int textHeight = 4 * font.lineHeight + 2*VERTICALPADDING;

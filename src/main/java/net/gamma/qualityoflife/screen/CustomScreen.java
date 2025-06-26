@@ -35,4 +35,11 @@ public class CustomScreen extends Screen {
         return true;
     }
 
+
+    @Override
+    public void onClose() {
+        COORDINATESWIDGET.writeJson("coordinatesWidget.json");
+        MOVEMENTVISUALWIDGET.writeJson("movementVisualWidget.json");
+        super.onClose();
+    }
 }
