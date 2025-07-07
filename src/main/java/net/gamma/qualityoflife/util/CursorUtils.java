@@ -16,6 +16,11 @@ public class CursorUtils {
             4,glfwCreateStandardCursor(GLFW_RESIZE_NESW_CURSOR));
     public static void setCursor(int cursorType)
     {
+        if(cursorType < 0 || cursorType > 4)
+        {
+            glfwSetCursor(WINDOW, 0);
+            return;
+        }
         glfwSetCursor(WINDOW, CURSOR_MAP.get(cursorType));
     }
 }

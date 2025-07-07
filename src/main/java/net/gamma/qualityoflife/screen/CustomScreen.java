@@ -4,8 +4,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-import static net.gamma.qualityoflife.widget.ManagerWidget.COORDINATESWIDGET;
-import static net.gamma.qualityoflife.widget.ManagerWidget.MOVEMENTVISUALWIDGET;
+import static net.gamma.qualityoflife.widget.ManagerWidget.*;
 
 public class CustomScreen extends Screen {
     public CustomScreen() {
@@ -18,6 +17,7 @@ public class CustomScreen extends Screen {
         super.init();
         addRenderableWidget(COORDINATESWIDGET);
         addRenderableWidget(MOVEMENTVISUALWIDGET);
+        addRenderableWidget(HOPPITYWIDGET);
     }
 
     @Override
@@ -40,6 +40,7 @@ public class CustomScreen extends Screen {
     public void onClose() {
         COORDINATESWIDGET.writeJson("coordinatesWidget.json");
         MOVEMENTVISUALWIDGET.writeJson("movementVisualWidget.json");
+        HOPPITYWIDGET.writeJson("hoppityWidget.json");
         super.onClose();
     }
 }

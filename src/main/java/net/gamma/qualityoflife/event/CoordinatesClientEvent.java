@@ -25,9 +25,9 @@ public class CoordinatesClientEvent {
     //Variables for coordinates
     private static Vec3 oldPos = null;
     private static String[] coordinates = new String[3];
-    public static String stringBiome = "Biome: ";
-    public static int HORIZONTALPADDING = 2;
-    public static int VERTICALPADDING = 2;
+    private static String stringBiome = "Biome: ";
+    private static final int HORIZONTALPADDING = 2;
+    private static final int VERTICALPADDING = 2;
 
     //Function for updating coordinates when player moves
     @SubscribeEvent
@@ -41,15 +41,7 @@ public class CoordinatesClientEvent {
             }
             Player player = Minecraft.getInstance().player;
             Vec3 pos = new Vec3(player.getX(),player.getY(),player.getZ());
-            if(oldPos == null)
-            {
-                oldPos = pos;
-                String stringPos = String.format("X: %.3f,Y: %.3f,Z: %.3f" , pos.x,pos.y,pos.z);
-                coordinates = stringPos.split(",");
-                Holder<Biome> biomeHolder = Minecraft.getInstance().player.level().getBiome(player.blockPosition());
-                stringBiome = biomeHolder.getKey().location().getPath();
-            }
-            else if(oldPos.distanceTo(pos) > 0.001)
+            if(oldPos == null || oldPos.distanceTo(pos) > 0.001)
             {
                 oldPos = pos;
                 String stringPos = String.format("X: %.3f,Y: %.3f,Z: %.3f" , pos.x,pos.y,pos.z);
