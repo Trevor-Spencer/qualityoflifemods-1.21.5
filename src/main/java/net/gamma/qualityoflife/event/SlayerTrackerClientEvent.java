@@ -2,7 +2,6 @@ package net.gamma.qualityoflife.event;
 
 import net.gamma.qualityoflife.QualityofLifeMods;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -19,7 +18,9 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
 
 import static net.gamma.qualityoflife.Config.SLAYER_ACTIVE;
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
+import static net.gamma.qualityoflife.util.DisplayUtils.drawInfo;
 import static net.gamma.qualityoflife.util.SlayerUtils.logMobs;
+import static net.gamma.qualityoflife.widget.ManagerWidget.SLAYERWIDGET;
 
 import java.util.*;
 
@@ -60,12 +61,11 @@ public class SlayerTrackerClientEvent {
     private static int trackCooldown = 0;
 
     //Rendering Variables
-    public static int x = 20;
-    public static int y = 50;
-    private static final int WIDTHPADDING = 2;
-    private static final int HEIGHTPADDING = 2;
-    public static int displayWidth = 100;
-    public static int displayHeight = 50;
+    private static final int HORIZONTALPADDING = 2;
+    private static final int VERTICALPADDING = 2;
+    private static final int TEXTCOLOR = 0xFFFFFF;
+    private static final int BACKGROUND_COLOR = 0x805C5C5C;
+
 
     private static final Map<String, Integer> SLAYERTYPEMAP = Map.of(
             "Revenant Horror", 0,
@@ -714,62 +714,44 @@ public class SlayerTrackerClientEvent {
         if(!SLAYER_ACTIVE.get() || Minecraft.getInstance().level == null){return;}
         if(!onSkyblock){return;}
         GuiGraphics graphics = event.getGuiGraphics();
-        Font font = Minecraft.getInstance().font;
-        int colorText = 0xFFFFFF;
-        int colorBackground = 0x805C5C5C;
-        int height = Minecraft.getInstance().font.lineHeight;
         String title = String.format("Slayer Quest For %s", SLAYERTYPEMAPLOOKUP.get(slayerType));
         String ending = "Boss Slain";
+
         if(activeQuest && !bossSlain && !trackingBoss)
         {
-            graphics.fill(x, y, x + displayWidth, y + displayHeight, colorBackground);
-            //Calculate scale
-            float scaleWidth = 1.0f;
-            float scaleHeight = 1.0f;
-            List<Integer> textWidths = List.of(font.width(title)+(WIDTHPADDING*2));
-            int textHeight = font.lineHeight + (HEIGHTPADDING*2);
-            int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
-            if(textHeight > displayHeight)
-            {
-                scaleHeight = (float) displayHeight / textHeight;
-            }
-            if(maxWidth > displayWidth)
-            {
-                scaleWidth = (float) displayWidth / maxWidth;
-            }
-            float scale = Math.min(scaleWidth, scaleHeight);
-            graphics.pose().pushPose();
-            graphics.pose().scale(scale, scale, 1.0f);
-            graphics.drawString(font, title, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING)/scale, colorText, false);
-            graphics.pose().popPose();
+            int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+            int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+            List<String> strings = List.of(title);
+
+            drawInfo(graphics,
+                    screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
+                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                    Minecraft.getInstance().font, List.of(), BACKGROUND_COLOR, false, true);
+
+            drawInfo(graphics,
+                    screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
+                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                    Minecraft.getInstance().font, strings, TEXTCOLOR, false, true);
         }
         if(activeQuest && bossSlain && !trackingBoss)
         {
-            graphics.fill(x, y, x + displayWidth, y + displayHeight, colorBackground);
-            //Calculate scale
-            float scaleWidth = 1.0f;
-            float scaleHeight = 1.0f;
-            List<Integer> textWidths = List.of(font.width(title)+(WIDTHPADDING*2), font.width(ending)+(WIDTHPADDING*2));
-            int textHeight = 2 * font.lineHeight + (HEIGHTPADDING*2);
-            int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
-            if(textHeight > displayHeight)
-            {
-                scaleHeight = (float) displayHeight / textHeight;
-            }
-            if(maxWidth > displayWidth)
-            {
-                scaleWidth = (float) displayWidth / maxWidth;
-            }
-            float scale = Math.min(scaleWidth, scaleHeight);
-            graphics.pose().pushPose();
-            graphics.pose().scale(scale, scale, 1.0f);
-            graphics.drawString(font, title, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING)/scale, colorText, false);
-            graphics.drawString(font, ending, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + height)/scale, colorText, false);
-            graphics.pose().popPose();
+            int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+            int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+            List<String> strings = List.of(title, ending);
+
+            drawInfo(graphics,
+                    screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
+                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                    Minecraft.getInstance().font, List.of(), BACKGROUND_COLOR, false, true);
+
+            drawInfo(graphics,
+                    screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
+                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                    Minecraft.getInstance().font, strings, TEXTCOLOR, false, true);
         }
         if(activeQuest &&!bossSlain && trackingBoss)
         {
-            graphics.fill(x, y, x + displayWidth, y + displayHeight, colorBackground);
+
             if(bossFound)
             {
                 String name;
@@ -823,29 +805,19 @@ public class SlayerTrackerClientEvent {
                 }
                 type = "Boss Tracking";
 
-                //Calculate scale
-                float scaleWidth = 1.0f;
-                float scaleHeight = 1.0f;
-                List<Integer> textWidths = List.of(font.width(title)+(WIDTHPADDING*2),font.width(name)+(WIDTHPADDING*2),font.width(time)+(WIDTHPADDING*2),font.width(spawned)+(WIDTHPADDING*2),font.width(type)+(WIDTHPADDING*2));
-                int textHeight = 5 * font.lineHeight + (HEIGHTPADDING*2);
-                int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
-                if(textHeight > displayHeight)
-                {
-                    scaleHeight = (float) displayHeight / textHeight;
-                }
-                if(maxWidth > displayWidth)
-                {
-                    scaleWidth = (float) displayWidth / maxWidth;
-                }
-                float scale = Math.min(scaleWidth, scaleHeight);
-                graphics.pose().pushPose();
-                graphics.pose().scale(scale, scale, 1.0f);
-                graphics.drawString(font, title, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING)/scale, colorText, false);
-                graphics.drawString(font, name, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + height)/scale, colorText, false);
-                graphics.drawString(font, time, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*2))/scale, colorText, false);
-                graphics.drawString(font, spawned, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*3))/scale, colorText, false);
-                graphics.drawString(font, type, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*4))/scale, colorText, false);
-                graphics.pose().popPose();
+                int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+                int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+                List<String> strings = List.of(title, name, time, spawned, type);
+
+                drawInfo(graphics,
+                        screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
+                        SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                        Minecraft.getInstance().font, List.of(), BACKGROUND_COLOR, false, true);
+
+                drawInfo(graphics,
+                        screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
+                        SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                        Minecraft.getInstance().font, strings, TEXTCOLOR, false, true);
             }
             else if(miniFound)
             {
@@ -930,29 +902,19 @@ public class SlayerTrackerClientEvent {
                 }
                 type = "Mini Tracking";
 
-                //Calculate scale
-                float scaleWidth = 1.0f;
-                float scaleHeight = 1.0f;
-                List<Integer> textWidths = List.of(font.width(title)+(WIDTHPADDING*2),font.width(nameSkeleton)+(WIDTHPADDING*2),font.width(namePiglin)+(WIDTHPADDING*2),font.width(time)+(WIDTHPADDING*2),font.width(type)+(WIDTHPADDING*2));
-                int textHeight = 5 * font.lineHeight + (HEIGHTPADDING*2);
-                int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
-                if(textHeight > displayHeight)
-                {
-                    scaleHeight = (float) displayHeight / textHeight;
-                }
-                if(maxWidth > displayWidth)
-                {
-                    scaleWidth = (float) displayWidth / maxWidth;
-                }
-                float scale = Math.min(scaleWidth, scaleHeight);
-                graphics.pose().pushPose();
-                graphics.pose().scale(scale, scale, 1.0f);
-                graphics.drawString(font, title, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING)/scale, colorText, false);
-                graphics.drawString(font, nameSkeleton, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + height)/scale, colorText, false);
-                graphics.drawString(font, namePiglin, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*2))/scale, colorText, false);
-                graphics.drawString(font, time, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*3))/scale, colorText, false);
-                graphics.drawString(font, type, (x + WIDTHPADDING)/scale, (y + HEIGHTPADDING + (height*4))/scale, colorText, false);
-                graphics.pose().popPose();
+                int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+                int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+                List<String> strings = List.of(title, nameSkeleton, namePiglin, time, type);
+
+                drawInfo(graphics,
+                        screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
+                        SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                        Minecraft.getInstance().font, List.of(), BACKGROUND_COLOR, false, true);
+
+                drawInfo(graphics,
+                        screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
+                        SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                        Minecraft.getInstance().font, strings, TEXTCOLOR, false, true);
             }
         }
     }

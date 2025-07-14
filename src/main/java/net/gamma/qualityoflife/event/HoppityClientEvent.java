@@ -22,6 +22,7 @@ import java.util.List;
 
 import static net.gamma.qualityoflife.Config.HOPPITY_ACTIVE;
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
+import static net.gamma.qualityoflife.util.DisplayUtils.drawInfo;
 import static net.gamma.qualityoflife.util.MathUtils.findNumeric;
 import static net.gamma.qualityoflife.util.WidgetUtils.getReal;
 import static net.gamma.qualityoflife.widget.ManagerWidget.HOPPITYWIDGET;
@@ -152,46 +153,12 @@ public class HoppityClientEvent {
             GuiGraphics graphics = event.getGuiGraphics();
             int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
             int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-            int realX = getReal(HOPPITYWIDGET.normalizedX, screenWidth);
-            int realY = getReal(HOPPITYWIDGET.normalizedY, screenHeight);
-            int realWidth = getReal(HOPPITYWIDGET.normalizedWidth, screenWidth);
-            int realHeight = getReal(HOPPITYWIDGET.normalizedHeight, screenHeight);
-            float scaleWidth = 1.0f;
-            float scaleHeight = 1.0f;
-            Font font = Minecraft.getInstance().font;
-            graphics.fill(realX, realY, realX + realWidth, realY + realHeight, 0x805C5C5C);
-            List<Integer> textWidths = List.of(
-                    font.width(allTimeChocolate) + 2*HORIZONTALPADDING,
-                    font.width(factoryLevelString) + 2*HORIZONTALPADDING,
-                    font.width(chocolateCurrentPrestigeString) + 2*HORIZONTALPADDING,
-                    font.width(rabbitBarnLevelString) + 2*HORIZONTALPADDING,
-                    font.width(barnStorageString) + 2*HORIZONTALPADDING,
-                    font.width(timeTowerString) + 2*HORIZONTALPADDING,
-                    font.width(towerStatus) + 2*HORIZONTALPADDING,
-                    font.width(towerCharges) + 2*HORIZONTALPADDING);
-            int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
-            int textHeight = 8 * font.lineHeight + 2*VERTICALPADDING;
-            if(textHeight > realHeight)
-            {
-                scaleHeight = (float) realHeight / textHeight;
-            }
-            if(maxWidth > realWidth)
-            {
-                scaleWidth = (float) realWidth / maxWidth;
-            }
-            float scale = Math.min(scaleWidth, scaleHeight);
-            graphics.pose().pushPose();
-            graphics.pose().scale(scale, scale, 1.0f);
-            float displayX = (realX + HORIZONTALPADDING*scale)/scale;
-            event.getGuiGraphics().drawString(Minecraft.getInstance().font, allTimeChocolate, displayX, (realY + VERTICALPADDING*scale)/scale, 0xFFFFFF, false);
-            event.getGuiGraphics().drawString(Minecraft.getInstance().font, factoryLevelString, displayX, (realY + VERTICALPADDING*scale + 9*scale)/scale, 0xFFFFFF, false);
-            event.getGuiGraphics().drawString(Minecraft.getInstance().font, chocolateCurrentPrestigeString, displayX, (realY + VERTICALPADDING*scale + (2*9)*scale)/scale, 0xFFFFFF, false);
-            event.getGuiGraphics().drawString(Minecraft.getInstance().font, timeTowerString, displayX, (realY + VERTICALPADDING*scale + (3*9)*scale)/scale, 0xFFFFFF, false);
-            event.getGuiGraphics().drawString(Minecraft.getInstance().font, towerStatus, displayX, (realY + VERTICALPADDING*scale + (4*9)*scale)/scale, 0xFFFFFF, false);
-            event.getGuiGraphics().drawString(Minecraft.getInstance().font, towerCharges, displayX, (realY + VERTICALPADDING*scale + (5*9)*scale)/scale, 0xFFFFFF, false);
-            event.getGuiGraphics().drawString(Minecraft.getInstance().font, rabbitBarnLevelString, displayX, (realY + VERTICALPADDING*scale + (6*9)*scale)/scale, 0xFFFFFF, false);
-            event.getGuiGraphics().drawString(Minecraft.getInstance().font, barnStorageString, displayX, (realY + VERTICALPADDING*scale + (7*9)*scale)/scale, 0xFFFFFF, false);
-            graphics.pose().popPose();
+            List<String> strings = List.of(allTimeChocolate, factoryLevelString, chocolateCurrentPrestigeString,
+                     rabbitBarnLevelString, barnStorageString, timeTowerString, towerStatus, towerCharges);
+            drawInfo(graphics,
+                    screenWidth, screenHeight, HOPPITYWIDGET.normalizedX, HOPPITYWIDGET.normalizedY,
+                    HOPPITYWIDGET.normalizedWidth, HOPPITYWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                    Minecraft.getInstance().font, strings, 0xFFFFFF, false, true);
         }
     }
 }

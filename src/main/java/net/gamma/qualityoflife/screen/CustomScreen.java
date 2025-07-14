@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import static net.gamma.qualityoflife.widget.ManagerWidget.*;
 
 public class CustomScreen extends Screen {
+    public static boolean screenOpen = false;
     public CustomScreen() {
         super(Component.literal("Modify Mods Screen"));
     }
@@ -18,6 +19,8 @@ public class CustomScreen extends Screen {
         addRenderableWidget(COORDINATESWIDGET);
         addRenderableWidget(MOVEMENTVISUALWIDGET);
         addRenderableWidget(HOPPITYWIDGET);
+        addRenderableWidget(SLAYERWIDGET);
+        screenOpen = true;
     }
 
     @Override
@@ -31,16 +34,12 @@ public class CustomScreen extends Screen {
     }
 
     @Override
-    public boolean shouldCloseOnEsc() {
-        return true;
-    }
-
-
-    @Override
     public void onClose() {
         COORDINATESWIDGET.writeJson("coordinatesWidget.json");
         MOVEMENTVISUALWIDGET.writeJson("movementVisualWidget.json");
         HOPPITYWIDGET.writeJson("hoppityWidget.json");
+        SLAYERWIDGET.writeJson("slayerWidget.json");
+        screenOpen = false;
         super.onClose();
     }
 }

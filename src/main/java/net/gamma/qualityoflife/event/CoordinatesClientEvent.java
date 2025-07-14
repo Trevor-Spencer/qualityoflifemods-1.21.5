@@ -17,6 +17,7 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import java.util.List;
 
 import static net.gamma.qualityoflife.Config.*;
+import static net.gamma.qualityoflife.util.DisplayUtils.drawInfo;
 import static net.gamma.qualityoflife.util.WidgetUtils.getReal;
 import static net.gamma.qualityoflife.widget.ManagerWidget.COORDINATESWIDGET;
 
@@ -24,7 +25,7 @@ import static net.gamma.qualityoflife.widget.ManagerWidget.COORDINATESWIDGET;
 public class CoordinatesClientEvent {
     //Variables for coordinates
     private static Vec3 oldPos = null;
-    private static String[] coordinates = new String[3];
+    private static String[] coordinates = new String[] { "X: ", "Y: ", "Z: "};
     private static String stringBiome = "Biome: ";
     private static final int HORIZONTALPADDING = 2;
     private static final int VERTICALPADDING = 2;
@@ -63,34 +64,16 @@ public class CoordinatesClientEvent {
             GuiGraphics graphics = event.getGuiGraphics();
             int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
             int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-            int realX = getReal(COORDINATESWIDGET.normalizedX, screenWidth);
-            int realY = getReal(COORDINATESWIDGET.normalizedY, screenHeight);
-            int realWidth = getReal(COORDINATESWIDGET.normalizedWidth, screenWidth);
-            int realHeight = getReal(COORDINATESWIDGET.normalizedHeight, screenHeight);
-            float scaleWidth = 1.0f;
-            float scaleHeight = 1.0f;
-            Font font = Minecraft.getInstance().font;
-            graphics.fill(realX, realY, realX + realWidth, realY + realHeight, 0x805C5C5C);
-            List<Integer> textWidths = List.of(font.width(coordinates[0]) + 2*HORIZONTALPADDING, font.width(coordinates[1]) + 2*HORIZONTALPADDING,font.width(coordinates[2]) + 2*HORIZONTALPADDING, font.width(stringBiome) + 2*HORIZONTALPADDING);
-            int maxWidth = textWidths.stream().max(Integer::compareTo).orElse(0);
-            int textHeight = 4 * font.lineHeight + 2*VERTICALPADDING;
-            if(textHeight > realHeight)
-            {
-                scaleHeight = (float) realHeight / textHeight;
-            }
-            if(maxWidth > realWidth)
-            {
-                scaleWidth = (float) realWidth / maxWidth;
-            }
-            float scale = Math.min(scaleWidth, scaleHeight);
-            graphics.pose().pushPose();
-            graphics.pose().scale(scale, scale, 1.0f);
-            for(int i = 0; i < 3; i++)
-            {
-                graphics.drawString(font, coordinates[i], (realX + HORIZONTALPADDING*scale)/scale, (realY + VERTICALPADDING*scale + (i*9)*scale)/scale, 0xFFFFFF, false);
-            }
-            graphics.drawString(font, stringBiome, (realX + HORIZONTALPADDING*scale)/scale, (realY + VERTICALPADDING*scale + (3*9)*scale)/scale, 0xFFFFFF, false);
-            graphics.pose().popPose();
+            List<String> strings = List.of(coordinates[0], coordinates[1], coordinates[2], stringBiome);
+
+            drawInfo(graphics,
+                    screenWidth, screenHeight, COORDINATESWIDGET.normalizedX, COORDINATESWIDGET.normalizedY,
+                    COORDINATESWIDGET.normalizedWidth, COORDINATESWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                    Minecraft.getInstance().font, List.of(), 0x805C5C5C, true, false);
+            drawInfo(graphics,
+                    screenWidth, screenHeight, COORDINATESWIDGET.normalizedX, COORDINATESWIDGET.normalizedY,
+                    COORDINATESWIDGET.normalizedWidth, COORDINATESWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                    Minecraft.getInstance().font, strings, 0xFFFFFF, false, true);
         }
     }
 }

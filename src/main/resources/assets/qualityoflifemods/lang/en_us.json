@@ -7,8 +7,10 @@
   "qualityoflifemods.configuration.magicNumberIntroduction": "Magic Number Text",
   "qualityoflifemods.configuration.magicNumber": "Magic Number",
 
+  "key.categories.qualityoflifemods": "Quality of Life Mod",
   "key.qualityoflifemods.zoom": "Zoom Key",
-  "key.categories.qualityoflifemods": "Zoom Mod",
+  "key.qualityoflifemods.modifymod": "Modify Mod Key",
+
 
   "qualityoflifemods.configuration.enablefullbright": "Enable Fullbright",
   "qualityoflifemods.configuration.enablecoordinates": "Enable Coordinates",

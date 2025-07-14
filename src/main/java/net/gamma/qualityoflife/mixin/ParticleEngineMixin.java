@@ -11,11 +11,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
+
 @Mixin(ParticleEngine.class)
 public class ParticleEngineMixin {
     @Inject(method = "createParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)Lnet/minecraft/client/particle/Particle;",
             at = @At("RETURN"), cancellable = true)
     private void onCreateParticle(ParticleOptions particleData, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, CallbackInfoReturnable<Particle> cir) {
+        if(!onSkyblock){return;}
         Particle particle = cir.getReturnValue();
         if (particle != null && particleData == ParticleTypes.CRIT) {
             int lifetime = particle.getLifetime();

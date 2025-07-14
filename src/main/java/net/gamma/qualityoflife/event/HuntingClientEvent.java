@@ -65,6 +65,7 @@ public class HuntingClientEvent {
         }
         timer = 0;
         scannedEntities.clear();
+        scannedParticles.clear();
         processMob(EntityType.SHULKER, ChatFormatting.LIGHT_PURPLE);
         processMob(EntityType.TURTLE, ChatFormatting.GREEN);
         trackedParticles.removeIf(p -> ((p.ticksRemaining -= SCANDELAY) <= 0));

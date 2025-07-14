@@ -7,6 +7,7 @@ import org.lwjgl.glfw.GLFW;
 
 public class ModKeyBinding {
     public static KeyMapping ZOOM_KEY;
+    public static KeyMapping MODIFY_MOD_KEY;
 
     public static void register(RegisterKeyMappingsEvent event)
     {
@@ -14,8 +15,13 @@ public class ModKeyBinding {
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_V,
                 "key.categories.qualityoflifemods");
+        MODIFY_MOD_KEY = new KeyMapping("key.qualityoflifemods.modifymod",
+                InputConstants.Type.KEYSYM,
+                GLFW.GLFW_KEY_RIGHT_SHIFT,
+                "key.categories.qualityoflifemods");
 
         event.register(ZOOM_KEY);
+        event.register(MODIFY_MOD_KEY);
 
     }
 }
