@@ -26,6 +26,9 @@ public class Config
     public static final ModConfigSpec.BooleanValue HOPPITY_ACTIVE = BUILDER
             .comment("Enable Hoppity Tracker")
             .define("enablehoppity", true);
+    public static final ModConfigSpec.BooleanValue HUNTING_ACTIVE = BUILDER
+                .comment("Enable Hunting Tracker")
+                .define("enablehunting", true);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 }

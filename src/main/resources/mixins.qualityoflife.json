@@ -5,7 +5,9 @@
   "mixins": [
     "BlockLightLevelMixin",
     "EntityLightLevelMixin",
-    "RenderMovementMixin"
+    "RenderMovementMixin",
+    "HuntingMixin",
+    "ParticleEngineMixin"
   ],
   "injectors": {
     "defaultRequire": 1
