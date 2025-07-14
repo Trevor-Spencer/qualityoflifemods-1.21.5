@@ -29,15 +29,4 @@ public class SlayerUtils {
             LOGGER.info("TimeID: " + timeRemaining_id + " NameComponent: " + level.getEntity(timeRemaining_id).getCustomName().getString());
         }
     }
-
-    public static boolean checkOnSkyblock()
-    {
-        updateWorld = false;
-        Objective obj = Minecraft.getInstance().level.getScoreboard().getDisplayObjective(DisplaySlot.SIDEBAR);
-        if(obj != null) {
-            return obj.getName().contains("SBScoreboard");
-        }
-        return false;
-    }
-
 }

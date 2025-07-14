@@ -21,6 +21,7 @@ import net.neoforged.neoforge.client.event.ScreenEvent;
 import java.util.List;
 
 import static net.gamma.qualityoflife.Config.HOPPITY_ACTIVE;
+import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
 import static net.gamma.qualityoflife.util.MathUtils.findNumeric;
 import static net.gamma.qualityoflife.util.WidgetUtils.getReal;
 import static net.gamma.qualityoflife.widget.ManagerWidget.HOPPITYWIDGET;
@@ -44,6 +45,7 @@ public class HoppityClientEvent {
     {
         if(!HOPPITY_ACTIVE.get()){return;}
         if(Minecraft.getInstance().player == null){return;}
+        if(!onSkyblock){return;}
         Screen screen = event.getScreen();
         if (!screen.getTitle().getString().contains("Chocolate Factory")) {return;}
         if (screen instanceof AbstractContainerScreen<?> containerScreen)

@@ -29,6 +29,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import java.util.*;
 
 import static net.gamma.qualityoflife.Config.HUNTING_ACTIVE;
+import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
 import static net.gamma.qualityoflife.util.ParticleUtils.trackedParticles;
 
 @EventBusSubscriber(modid = QualityofLifeMods.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
@@ -57,6 +58,7 @@ public class HuntingClientEvent {
         if (!Minecraft.getInstance().level.isClientSide) {
             return;
         }
+        if(!onSkyblock){return;}
         if (timer < SCANDELAY) {
             timer++;
             return;

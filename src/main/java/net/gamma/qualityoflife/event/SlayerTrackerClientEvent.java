@@ -19,7 +19,7 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
 import static net.gamma.qualityoflife.Config.SLAYER_ACTIVE;
-import static net.gamma.qualityoflife.util.SlayerUtils.checkOnSkyblock;
+import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
 import static net.gamma.qualityoflife.util.SlayerUtils.logMobs;
 
 import java.util.*;
@@ -105,24 +105,14 @@ public class SlayerTrackerClientEvent {
     }
 
     @SubscribeEvent
-    private static void joinWorld(EntityJoinLevelEvent event)
-    {
-        if(!event.getLevel().isClientSide){return;}
-        if(event.getEntity() instanceof LocalPlayer)
-        {
-            updateWorld = true;
-        }
-    }
-    @SubscribeEvent
     private static void bossTracker(ClientTickEvent.Post event)
     {
-        if(!SLAYER_ACTIVE.get() || Minecraft.getInstance().player == null){return;}
+        if(!SLAYER_ACTIVE.get() || Minecraft.getInstance().player == null || Minecraft.getInstance().level == null){return;}
+        if(!onSkyblock){return;}
         if(Minecraft.getInstance().level.isClientSide)
         {
-            if(updateWorld){checkOnSkyblock();}
             if(trackCooldown < TRACKCOOLDOWNMAX){trackCooldown++; return;}
             trackCooldown = 0;
-            if(!checkOnSkyblock()) {return;}
             checkSlayer();
             if(slayerType == -1){trackingBoss = false; activeQuest = false; bossSlain = false;return;}
             Collection<PlayerTeam> teams = Minecraft.getInstance().level.getScoreboard().getPlayerTeams();
@@ -725,7 +715,7 @@ public class SlayerTrackerClientEvent {
     private static void renderGui(RenderGuiEvent.Post event)
     {
         if(!SLAYER_ACTIVE.get() || Minecraft.getInstance().level == null){return;}
-        if(!checkOnSkyblock()){return;}
+        if(!onSkyblock){return;}
         GuiGraphics graphics = event.getGuiGraphics();
         Font font = Minecraft.getInstance().font;
         int colorText = 0xFFFFFF;
