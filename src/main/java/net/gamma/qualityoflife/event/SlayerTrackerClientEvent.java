@@ -16,7 +16,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
-import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
 import static net.gamma.qualityoflife.Config.SLAYER_ACTIVE;
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
@@ -59,8 +58,6 @@ public class SlayerTrackerClientEvent {
     //Used for slowing processing
     private static final int TRACKCOOLDOWNMAX = 10;
     private static int trackCooldown = 0;
-    //Read scoreboard object when world switch
-    public static boolean updateWorld = false;
 
     //Rendering Variables
     public static int x = 20;

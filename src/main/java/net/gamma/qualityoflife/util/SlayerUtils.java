@@ -3,10 +3,7 @@ package net.gamma.qualityoflife.util;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.scores.DisplaySlot;
-import net.minecraft.world.scores.Objective;
 import org.slf4j.Logger;
-import static net.gamma.qualityoflife.event.SlayerTrackerClientEvent.updateWorld;
 
 public class SlayerUtils {
     public static void logMobs(int boss_id, int name_id, int spawnedBy_id, int timeRemaining_id, boolean advanced)
