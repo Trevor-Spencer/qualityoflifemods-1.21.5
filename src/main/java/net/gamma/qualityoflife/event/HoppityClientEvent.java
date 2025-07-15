@@ -155,6 +155,7 @@ public class HoppityClientEvent {
             int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
             List<String> strings = List.of(allTimeChocolate, factoryLevelString, chocolateCurrentPrestigeString,
                      rabbitBarnLevelString, barnStorageString, timeTowerString, towerStatus, towerCharges);
+
             drawInfo(graphics,
                     screenWidth, screenHeight, HOPPITYWIDGET.normalizedX, HOPPITYWIDGET.normalizedY,
                     HOPPITYWIDGET.normalizedWidth, HOPPITYWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,

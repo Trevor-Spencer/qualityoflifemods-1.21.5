@@ -1,12 +1,16 @@
 package net.gamma.qualityoflife.event;
 
+import net.gamma.qualityoflife.QualityofLifeMods;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.scores.DisplaySlot;
 import net.minecraft.world.scores.Objective;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
+@EventBusSubscriber(modid = QualityofLifeMods.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class SkyblockClientEvent {
     private static boolean updateWorld = true;
     public static boolean onSkyblock = false;
@@ -37,7 +41,7 @@ public class SkyblockClientEvent {
     }
 
     @SubscribeEvent
-    private static void tick(ClientTickEvent.Pre event)
+    private static void tick(ClientTickEvent.Post event)
     {
         if(Minecraft.getInstance().level == null || Minecraft.getInstance().player == null){return;}
         if(!Minecraft.getInstance().level.isClientSide){return;}

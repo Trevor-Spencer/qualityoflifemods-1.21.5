@@ -76,10 +76,8 @@ public class MovementVisualClientEvent {
                         dKeyPressed = false;
                     }
                 }
-
             }
         }
-
     }
 
     @SubscribeEvent
@@ -121,10 +119,7 @@ public class MovementVisualClientEvent {
                     }
                 }
             }
-
         }
-
-
     }
 }
 

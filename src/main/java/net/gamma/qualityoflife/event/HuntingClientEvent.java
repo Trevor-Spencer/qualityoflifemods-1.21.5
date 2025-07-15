@@ -108,12 +108,11 @@ public class HuntingClientEvent {
 
     @SubscribeEvent
     private static void renderWorld(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
-
+        if(event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES){return;}
+        if(!HUNTING_ACTIVE.get()){return;}
         Minecraft mc = Minecraft.getInstance();
         Camera camera = mc.gameRenderer.getMainCamera();
         Vec3 camPos = camera.getPosition();
-        scannedParticles.clear();
 
         VertexConsumer buffer = mc.renderBuffers().bufferSource()
                 .getBuffer(SOLID_TRANSLUCENT_RENDERTYPE);
@@ -121,7 +120,6 @@ public class HuntingClientEvent {
         for (ParticleUtils.ParticleTracker particleTracker : trackedParticles) {
             if(scannedParticles.isEmpty() || !scannedParticles.contains(particleTracker.pos))
             {
-
                 BlockPos pos = particleTracker.pos;
                 scannedParticles.add(pos);
                 double x = pos.getX();

@@ -20,6 +20,7 @@ public class CustomScreen extends Screen {
         addRenderableWidget(MOVEMENTVISUALWIDGET);
         addRenderableWidget(HOPPITYWIDGET);
         addRenderableWidget(SLAYERWIDGET);
+        addRenderableWidget(BEACONWIDGET);
         screenOpen = true;
     }
 
@@ -39,6 +40,7 @@ public class CustomScreen extends Screen {
         MOVEMENTVISUALWIDGET.writeJson("movementVisualWidget.json");
         HOPPITYWIDGET.writeJson("hoppityWidget.json");
         SLAYERWIDGET.writeJson("slayerWidget.json");
+        BEACONWIDGET.writeJson("beaconWidget.json");
         screenOpen = false;
         super.onClose();
     }
