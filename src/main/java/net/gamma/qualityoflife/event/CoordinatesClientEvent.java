@@ -2,7 +2,6 @@ package net.gamma.qualityoflife.event;
 
 import net.gamma.qualityoflife.QualityofLifeMods;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.player.Player;
@@ -18,7 +17,6 @@ import java.util.List;
 
 import static net.gamma.qualityoflife.Config.*;
 import static net.gamma.qualityoflife.util.DisplayUtils.drawInfo;
-import static net.gamma.qualityoflife.util.WidgetUtils.getReal;
 import static net.gamma.qualityoflife.widget.ManagerWidget.COORDINATESWIDGET;
 
 @EventBusSubscriber(modid = QualityofLifeMods.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)

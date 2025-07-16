@@ -3,7 +3,6 @@ package net.gamma.qualityoflife.util;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.neoforged.neoforge.client.extensions.IPoseStackExtension;
 
 import java.util.List;
 
