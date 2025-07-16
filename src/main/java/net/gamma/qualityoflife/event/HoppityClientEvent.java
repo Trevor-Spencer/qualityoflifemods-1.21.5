@@ -2,7 +2,6 @@ package net.gamma.qualityoflife.event;
 
 import net.gamma.qualityoflife.QualityofLifeMods;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -24,7 +23,6 @@ import static net.gamma.qualityoflife.Config.HOPPITY_ACTIVE;
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
 import static net.gamma.qualityoflife.util.DisplayUtils.drawInfo;
 import static net.gamma.qualityoflife.util.MathUtils.findNumeric;
-import static net.gamma.qualityoflife.util.WidgetUtils.getReal;
 import static net.gamma.qualityoflife.widget.ManagerWidget.HOPPITYWIDGET;
 
 @EventBusSubscriber(modid = QualityofLifeMods.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)

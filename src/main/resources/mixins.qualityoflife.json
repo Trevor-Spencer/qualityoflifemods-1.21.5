@@ -7,7 +7,9 @@
     "EntityLightLevelMixin",
     "RenderMovementMixin",
     "HuntingMixin",
-    "ParticleEngineMixin"
+    "ParticleEngineMixin",
+    "ItemBackgroundMixin",
+    "InventoryBackgroundMixin"
   ],
   "injectors": {
     "defaultRequire": 1
