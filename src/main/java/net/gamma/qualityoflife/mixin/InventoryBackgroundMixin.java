@@ -20,7 +20,7 @@ import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
 
 @Mixin(AbstractContainerScreen.class)
 public class InventoryBackgroundMixin{
-    private static final Map<String, Integer> rarityToColor = Map.ofEntries(
+    private static final Map<String, Integer> RARITYTOCOLOR = Map.ofEntries(
             Map.entry("COMMON", 0x80FFFFFF),
             Map.entry("UNCOMMON", 0x8055FF55),
             Map.entry("RARE", 0x805555FF),
@@ -47,11 +47,11 @@ public class InventoryBackgroundMixin{
             for(int i = lines.size()-1; i >= 0; i--)
             {
                 String text = lines.get(i).getString();
-                for(String rarity : rarityToColor.keySet().stream().sorted((a,b) -> Integer.compare(b.length(), a.length())).toList())
+                for(String rarity : RARITYTOCOLOR.keySet().stream().sorted((a,b) -> Integer.compare(b.length(), a.length())).toList())
                 {
                     if(text.contains(rarity))
                     {
-                        int color = rarityToColor.getOrDefault(rarity, 0x00FFFFFF);
+                        int color = RARITYTOCOLOR.getOrDefault(rarity, 0x00FFFFFF);
                         if(color != 0x00FFFFFF)
                         {
                             guiGraphics.fill(slot.x,slot.y,slot.x+16,slot.y+16, color);

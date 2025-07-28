@@ -21,6 +21,8 @@ public class CustomWidget extends AbstractWidget {
     public static int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
     public static int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
     public static int PADDING = 4;
+    public static final int minWidth = 50;
+    public static final int minHeight = 50;
     public double normalizedX;
     public double normalizedY;
     public double normalizedWidth;
@@ -87,6 +89,16 @@ public class CustomWidget extends AbstractWidget {
         int realY = getReal(normalizedY, screenHeight);
         int realWidth = getReal(normalizedWidth, screenWidth);
         int realHeight = getReal(normalizedHeight, screenHeight);
+        if(realWidth < minWidth)
+        {
+            realWidth = minWidth;
+            normalizedWidth = getNormalized(realWidth, screenWidth);
+        }
+        if(realHeight < minHeight)
+        {
+            realHeight = minHeight;
+            normalizedHeight = getNormalized(realHeight, screenHeight);
+        }
         setX(realX);
         setY(realY);
         setWidth(realWidth);
@@ -197,149 +209,47 @@ public class CustomWidget extends AbstractWidget {
             {
                 case LEFT:
                 {
-                    int newX = (int)mouseX;
-                    int maxX = getX() + getWidth();
-                    newX = Math.max(0, Math.min(newX, maxX-10));
-                    int newWidth = Math.max(10, maxX - newX);
-                    int finalWidth = Math.min(screenWidth - newX, newWidth);
-
-                    setX(newX);
-                    setWidth(finalWidth);
-                    normalizedX = getNormalized(newX, screenWidth);
-                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    setLeft(mouseX);
                     break;
                 }
                 case RIGHT:
                 {
-                    int newX = (int)mouseX;
-                    int smallestX = getX();
-                    int newWidth = Math.max(10, newX - smallestX);
-                    int finalWidth = Math.min(screenWidth - smallestX, newWidth);
-
-                    setWidth(finalWidth);
-                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    setRight(mouseX);
                     break;
                 }
                 case UP:
                 {
-                    int newY = (int)mouseY;
-                    int maxY = getY() + getHeight();
-                    newY = Math.max(0, Math.min(newY, maxY - 10));
-                    int newHeight = Math.max(10, maxY - newY);
-                    int finalHeight = Math.min(screenHeight - newY, newHeight);
-
-                    setY(newY);
-                    setHeight(finalHeight);
-                    normalizedY  = getNormalized(newY, screenHeight);
-                    normalizedHeight = getNormalized(finalHeight, screenHeight);
+                    setUp(mouseY);
                     break;
                 }
                 case DOWN:
                 {
-                    int newY = (int)mouseY;
-                    int smallestY = getY();
-                    int newHeight = Math.max(10, newY - smallestY);
-                    int finalHeight = Math.min(screenHeight - smallestY, newHeight);
-
-                    setHeight(finalHeight);
-                    normalizedHeight = getNormalized(finalHeight, screenHeight);
+                    setDown(mouseY);
                     break;
                 }
                 case UPLEFT:
                 {
-                    //Up Control
-                    int newY = (int)mouseY;
-                    int maxY = getY() + getHeight();
-                    newY = Math.max(0, Math.min(newY, maxY - 10));
-                    int newHeight = Math.max(10, maxY - newY);
-                    int finalHeight = Math.min(screenHeight - newY, newHeight);
-
-                    setY(newY);
-                    setHeight(finalHeight);
-                    normalizedY  = getNormalized(newY, screenHeight);
-                    normalizedHeight = getNormalized(finalHeight, screenHeight);
-
-                    //Left Control
-                    int newX = (int)mouseX;
-                    int maxX = getX() + getWidth();
-                    newX = Math.max(0, Math.min(newX, maxX-10));
-                    int newWidth = Math.max(10, maxX - newX);
-                    int finalWidth = Math.min(screenWidth - newX, newWidth);
-
-                    setX(newX);
-                    setWidth(finalWidth);
-                    normalizedX = getNormalized(newX, screenWidth);
-                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    setUp(mouseY);
+                    setLeft(mouseX);
                     break;
 
                 }
                 case UPRIGHT:
                 {
-                    //Up Control
-                    int newY = (int)mouseY;
-                    int maxY = getY() + getHeight();
-                    newY = Math.max(0, Math.min(newY, maxY - 10));
-                    int newHeight = Math.max(10, maxY - newY);
-                    int finalHeight = Math.min(screenHeight - newY, newHeight);
-
-                    setY(newY);
-                    setHeight(finalHeight);
-                    normalizedY  = getNormalized(newY, screenHeight);
-                    normalizedHeight = getNormalized(finalHeight, screenHeight);
-
-                    //Right Control
-                    int newX = (int)mouseX;
-                    int smallestX = getX();
-                    int newWidth = Math.max(10, newX - smallestX);
-                    int finalWidth = Math.min(screenWidth - smallestX, newWidth);
-
-                    setWidth(finalWidth);
-                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    setUp(mouseY);
+                    setRight(mouseX);
                     break;
                 }
                 case DOWNLEFT:
                 {
-                    //Down Control
-                    int newY = (int)mouseY;
-                    int smallestY = getY();
-                    int newHeight = Math.max(10, newY - smallestY);
-                    int finalHeight = Math.min(screenHeight - smallestY, newHeight);
-
-                    setHeight(finalHeight);
-                    normalizedHeight = getNormalized(finalHeight, screenHeight);
-
-                    //Left Control
-                    int newX = (int)mouseX;
-                    int maxX = getX() + getWidth();
-                    newX = Math.max(0, Math.min(newX, maxX-10));
-                    int newWidth = Math.max(10, maxX - newX);
-                    int finalWidth = Math.min(screenWidth - newX, newWidth);
-
-                    setX(newX);
-                    setWidth(finalWidth);
-                    normalizedX = getNormalized(newX, screenWidth);
-                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    setDown(mouseY);
+                    setLeft(mouseX);
                     break;
                 }
                 case DOWNRIGHT:
                 {
-                    //Down Control
-                    int newY = (int)mouseY;
-                    int smallestY = getY();
-                    int newHeight = Math.max(10, newY - smallestY);
-                    int finalHeight = Math.min(screenHeight - smallestY, newHeight);
-
-                    setHeight(finalHeight);
-                    normalizedHeight = getNormalized(finalHeight, screenHeight);
-
-                    //Right Control
-                    int newX = (int)mouseX;
-                    int smallestX = getX();
-                    int newWidth = Math.max(10, newX - smallestX);
-                    int finalWidth = Math.min(screenWidth - smallestX, newWidth);
-
-                    setWidth(finalWidth);
-                    normalizedWidth = getNormalized(finalWidth, screenWidth);
+                    setDown(mouseY);
+                    setRight(mouseX);
                     break;
                 }
             }
@@ -396,6 +306,53 @@ public class CustomWidget extends AbstractWidget {
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
 
+    }
+
+    private void setUp(double mouseY)
+    {
+        int newY = (int)mouseY;
+        int maxY = getY() + getHeight();
+        newY = Math.max(0, Math.min(newY, maxY - minHeight));
+        int newHeight = Math.max(minHeight, maxY - newY);
+        int finalHeight = Math.min(screenHeight - newY, newHeight);
+
+        setY(newY);
+        setHeight(finalHeight);
+        normalizedY  = getNormalized(newY, screenHeight);
+        normalizedHeight = getNormalized(finalHeight, screenHeight);
+    }
+    private void setDown(double mouseY)
+    {
+        int newY = (int)mouseY;
+        int smallestY = getY();
+        int newHeight = Math.max(minHeight, newY - smallestY);
+        int finalHeight = Math.min(screenHeight - smallestY, newHeight);
+
+        setHeight(finalHeight);
+        normalizedHeight = getNormalized(finalHeight, screenHeight);
+    }
+    private void setLeft(double mouseX)
+    {
+        int newX = (int)mouseX;
+        int maxX = getX() + getWidth();
+        newX = Math.max(0, Math.min(newX, maxX-minWidth));
+        int newWidth = Math.max(minWidth, maxX - newX);
+        int finalWidth = Math.min(screenWidth - newX, newWidth);
+
+        setX(newX);
+        setWidth(finalWidth);
+        normalizedX = getNormalized(newX, screenWidth);
+        normalizedWidth = getNormalized(finalWidth, screenWidth);
+    }
+    private void setRight(double mouseX)
+    {
+        int newX = (int)mouseX;
+        int smallestX = getX();
+        int newWidth = Math.max(minWidth, newX - smallestX);
+        int finalWidth = Math.min(screenWidth - smallestX, newWidth);
+
+        setWidth(finalWidth);
+        normalizedWidth = getNormalized(finalWidth, screenWidth);
     }
 
     public void writeJson(String filename)

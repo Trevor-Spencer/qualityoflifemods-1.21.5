@@ -65,7 +65,6 @@ public class HuntingClientEvent {
         }
         timer = 0;
         scannedEntities.clear();
-        scannedParticles.clear();
         processMob(EntityType.SHULKER, ChatFormatting.LIGHT_PURPLE);
         processMob(EntityType.TURTLE, ChatFormatting.GREEN);
         trackedParticles.removeIf(p -> ((p.ticksRemaining -= SCANDELAY) <= 0));
@@ -109,11 +108,12 @@ public class HuntingClientEvent {
     @SubscribeEvent
     private static void renderWorld(RenderLevelStageEvent event) {
         if(event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES){return;}
-        if(!HUNTING_ACTIVE.get()){return;}
+        if(!HUNTING_ACTIVE.get() || !onSkyblock){return;}
         Minecraft mc = Minecraft.getInstance();
         Camera camera = mc.gameRenderer.getMainCamera();
         Vec3 camPos = camera.getPosition();
 
+        scannedParticles.clear();
         VertexConsumer buffer = mc.renderBuffers().bufferSource()
                 .getBuffer(SOLID_TRANSLUCENT_RENDERTYPE);
 

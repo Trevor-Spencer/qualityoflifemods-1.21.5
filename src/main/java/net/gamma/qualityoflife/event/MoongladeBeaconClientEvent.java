@@ -21,7 +21,8 @@ import java.util.Map;
 
 import static net.gamma.qualityoflife.Config.HUNTING_ACTIVE;
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
-import static net.gamma.qualityoflife.util.DisplayUtils.drawInfo;
+import static net.gamma.qualityoflife.util.DisplayUtils.*;
+import static net.gamma.qualityoflife.util.DisplayUtils.drawTextBody;
 import static net.gamma.qualityoflife.widget.ManagerWidget.BEACONWIDGET;
 
 @EventBusSubscriber(modid = QualityofLifeMods.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
@@ -44,6 +45,10 @@ public class MoongladeBeaconClientEvent {
     private static final int TOLERANCE = 4;
     private static final int HORIZONTALPADDING = 2;
     private static final int VERTICALPADDING = 2;
+
+    private static float hue = 0.0f;
+    private static final int TITLECOLOR = 0xFFFFFFFF;
+    private static final int TEXTCOLOR = 0xFFFFFFFF;
 
     private static final Map<Integer, Integer> delayToSpeed = Map.of(
             54, 1,
@@ -117,10 +122,7 @@ public class MoongladeBeaconClientEvent {
                 int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
                 List<String> strings = List.of(color, speed);
 
-                drawInfo(graphics,
-                        screenWidth, screenHeight, BEACONWIDGET.normalizedX, BEACONWIDGET.normalizedY,
-                        BEACONWIDGET.normalizedWidth, BEACONWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                        Minecraft.getInstance().font, strings, 0xFFFFFF, false, true);
+                displayText(graphics, screenWidth, screenHeight, "TUNE FREQUENCY", strings);
             }
             if(screen.getTitle().getString().contains("Upgrade Signal Strength"))
             {
@@ -130,12 +132,25 @@ public class MoongladeBeaconClientEvent {
                 int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
                 List<String> strings = List.of(enchantedColor, enchantedSpeed, regularColor, regularSpeed);
 
-                drawInfo(graphics,
-                        screenWidth, screenHeight, BEACONWIDGET.normalizedX, BEACONWIDGET.normalizedY,
-                        BEACONWIDGET.normalizedWidth, BEACONWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                        Minecraft.getInstance().font, strings, 0xFFFFFF, false, true);
+                displayText(graphics, screenWidth, screenHeight, "UPGRADE SIGNAL", strings);
             }
+            hue = (hue + 0.001f) % 1.0f;
         }
+    }
+
+    private static void displayText(GuiGraphics graphics, int screenWidth, int screenHeight, String title, List<String> body)
+    {
+        drawBorder(graphics,
+                screenWidth, screenHeight, BEACONWIDGET.normalizedX, BEACONWIDGET.normalizedY,
+                BEACONWIDGET.normalizedWidth, BEACONWIDGET.normalizedHeight,hue);
+        drawTextTitle(graphics,
+                screenWidth, screenHeight, BEACONWIDGET.normalizedX, BEACONWIDGET.normalizedY,
+                BEACONWIDGET.normalizedWidth, BEACONWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                Minecraft.getInstance().font, title, TITLECOLOR);
+        drawTextBody(graphics,
+                screenWidth, screenHeight, BEACONWIDGET.normalizedX, BEACONWIDGET.normalizedY,
+                BEACONWIDGET.normalizedWidth, BEACONWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                Minecraft.getInstance().font, body, TEXTCOLOR);
     }
 
     private static void tuneFrequency(AbstractContainerMenu inventory)

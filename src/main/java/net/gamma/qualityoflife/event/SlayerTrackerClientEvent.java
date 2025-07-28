@@ -18,7 +18,8 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
 
 import static net.gamma.qualityoflife.Config.SLAYER_ACTIVE;
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
-import static net.gamma.qualityoflife.util.DisplayUtils.drawInfo;
+import static net.gamma.qualityoflife.util.DisplayUtils.*;
+import static net.gamma.qualityoflife.util.DisplayUtils.drawTextBody;
 import static net.gamma.qualityoflife.util.SlayerUtils.logMobs;
 import static net.gamma.qualityoflife.widget.ManagerWidget.SLAYERWIDGET;
 
@@ -63,8 +64,12 @@ public class SlayerTrackerClientEvent {
     //Rendering Variables
     private static final int HORIZONTALPADDING = 2;
     private static final int VERTICALPADDING = 2;
-    private static final int TEXTCOLOR = 0xFFFFFF;
-    private static final int BACKGROUND_COLOR = 0x805C5C5C;
+
+    private static float hue = 0.0f;
+    private static final String TITLE = "SLAYER";
+    private static final int TITLECOLOR = 0xFFFFFFFF;
+    private static final int TEXTCOLOR = 0xFFFFFFFF;
+    private static final int BACKGROUNDCOLOR = 0x805C5C5C;
 
 
     private static final Map<String, Integer> SLAYERTYPEMAP = Map.of(
@@ -716,206 +721,94 @@ public class SlayerTrackerClientEvent {
         GuiGraphics graphics = event.getGuiGraphics();
         String title = String.format("Slayer Quest For %s", SLAYERTYPEMAPLOOKUP.get(slayerType));
         String ending = "Boss Slain";
-
+        int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+        List<String> strings = new ArrayList<>();
         if(activeQuest && !bossSlain && !trackingBoss)
         {
-            int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-            int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-            List<String> strings = List.of(title);
-
-            drawInfo(graphics,
-                    screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
-                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                    Minecraft.getInstance().font, List.of(), BACKGROUND_COLOR, false, true);
-
-            drawInfo(graphics,
-                    screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
-                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                    Minecraft.getInstance().font, strings, TEXTCOLOR, false, true);
+            strings = List.of(title);
         }
         if(activeQuest && bossSlain && !trackingBoss)
         {
-            int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-            int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-            List<String> strings = List.of(title, ending);
-
-            drawInfo(graphics,
-                    screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
-                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                    Minecraft.getInstance().font, List.of(), BACKGROUND_COLOR, false, true);
-
-            drawInfo(graphics,
-                    screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
-                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                    Minecraft.getInstance().font, strings, TEXTCOLOR, false, true);
+            strings = List.of(title, ending);
         }
         if(activeQuest &&!bossSlain && trackingBoss)
         {
-
             if(bossFound)
             {
-                String name;
-                String time;
-                String spawned;
-                String type;
-                if(Minecraft.getInstance().level.getEntity(nameID) != null)
-                {
-                    if(Minecraft.getInstance().level.getEntity(nameID).getCustomName() != null)
-                    {
-                        name = String.format("Name: %s", Minecraft.getInstance().level.getEntity(nameID).getCustomName().getString());
-                    }
-                    else
-                    {
-                        name = "Name:";
-                    }
-                }
-                else
-                {
-                    name = "Name:";
-                }
-                if(Minecraft.getInstance().level.getEntity(timeRemainingID) != null)
-                {
-                    if(Minecraft.getInstance().level.getEntity(timeRemainingID).getCustomName() != null)
-                    {
-                        time = String.format("Time: %s", Minecraft.getInstance().level.getEntity(timeRemainingID).getCustomName().getString());
-                    }
-                    else
-                    {
-                        time = "Time:";
-                    }
-                }
-                else
-                {
-                    time = "Time:";
-                }
-                if(Minecraft.getInstance().level.getEntity(spawnedByID) != null)
-                {
-                    if(Minecraft.getInstance().level.getEntity(spawnedByID).getCustomName() != null)
-                    {
-                        spawned = String.format("Spawned By: %s", Minecraft.getInstance().level.getEntity(spawnedByID).getCustomName().getString().split(": ")[1]);
-                    }
-                    else
-                    {
-                        spawned = "Spawned By:";
-                    }
-                }
-                else
-                {
-                    spawned = "Spawned By:";
-                }
-                type = "Boss Tracking";
-
-                int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-                int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-                List<String> strings = List.of(title, name, time, spawned, type);
-
-                drawInfo(graphics,
-                        screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
-                        SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                        Minecraft.getInstance().font, List.of(), BACKGROUND_COLOR, false, true);
-
-                drawInfo(graphics,
-                        screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
-                        SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                        Minecraft.getInstance().font, strings, TEXTCOLOR, false, true);
+                strings = List.of(
+                        title,
+                        getEntityName("Name", nameID),
+                        getEntityName("Time", timeRemainingID),
+                        getEntitySpawned("Spawned By", spawnedByID),
+                        "Boss Tracking");
             }
             else if(miniFound)
             {
                 String nameSkeleton = "Name:";
                 String namePiglin = "Name:";
                 String time = "Time:";
-                String type;
                 if(skeletonFound)
                 {
-                    Entity skeletonName = Minecraft.getInstance().level.getEntity(skeletonNameID);
-                    Entity skeletonTime = Minecraft.getInstance().level.getEntity(skeletonTimeRemainingID);
-                    if(skeletonName != null)
-                    {
-                        Component name = skeletonName.getCustomName();
-                        if(name != null)
-                        {
-                            nameSkeleton = String.format("Name: %s", name.getString());
-                        }
-                        else
-                        {
-                            nameSkeleton = "Name:";
-                        }
-                    }
-                    else
-                    {
-                        nameSkeleton = "Name:";
-                    }
-                    if(skeletonTime != null)
-                    {
-                        Component name = skeletonTime.getCustomName();
-                        if(name != null)
-                        {
-                            time = String.format("Time: %s", name.getString());
-                        }
-                        else
-                        {
-                            time = "Time:";
-                        }
-                    }
-                    else
-                    {
-                        time = "Time:";
-                    }
+                    nameSkeleton = getEntityName("Name", skeletonNameID);
+                    time = getEntityName("Time", skeletonTimeRemainingID);
                 }
 
                 if(piglinFound)
                 {
-                    Entity piglinName = Minecraft.getInstance().level.getEntity(piglinNameID);
-                    Entity piglinTime = Minecraft.getInstance().level.getEntity(piglinTimeRemainingID);
-                    if(piglinName != null)
+                    namePiglin = getEntityName("Name", piglinNameID);
+                    String tempTime = getEntityName("Time", piglinTimeRemainingID);
+                    if(!tempTime.matches("Time:"))
                     {
-                        Component name = piglinName.getCustomName();
-                        if(name != null)
-                        {
-                            namePiglin = String.format("Name: %s", name.getString());
-                        }
-                        else
-                        {
-                            namePiglin = "Name:";
-                        }
-                    }
-                    else
-                    {
-                        namePiglin = "Name:";
-                    }
-                    if(piglinTime != null)
-                    {
-                        Component name = piglinTime.getCustomName();
-                        if(name != null)
-                        {
-                            time = String.format("Time: %s", name.getString());
-                        }
-                        else
-                        {
-                            time = "Time:";
-                        }
-                    }
-                    else
-                    {
-                        time = "Time:";
+                        time = tempTime;
                     }
                 }
-                type = "Mini Tracking";
-
-                int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-                int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-                List<String> strings = List.of(title, nameSkeleton, namePiglin, time, type);
-
-                drawInfo(graphics,
-                        screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
-                        SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                        Minecraft.getInstance().font, List.of(), BACKGROUND_COLOR, false, true);
-
-                drawInfo(graphics,
-                        screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
-                        SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                        Minecraft.getInstance().font, strings, TEXTCOLOR, false, true);
+                strings = List.of(title,
+                        nameSkeleton,
+                        namePiglin,
+                        time,
+                        "Mini Tracking");
             }
         }
+        if(!strings.isEmpty())
+        {
+            drawBackgroundBorder(graphics,
+                    screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
+                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, BACKGROUNDCOLOR, hue);
+            drawTextTitle(graphics,
+                    screenWidth, screenHeight,SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
+                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                    Minecraft.getInstance().font, TITLE, TITLECOLOR);
+            drawTextBody(graphics,
+                    screenWidth, screenHeight,SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
+                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                    Minecraft.getInstance().font, strings, TEXTCOLOR);
+            hue = (hue + 0.001f) % 1.0f;
+        }
+    }
+
+    private static String getEntityName(String name, int entityId)
+    {
+        Entity entity = Minecraft.getInstance().level.getEntity(entityId);
+        if(entity != null)
+        {
+            if(entity.getCustomName() != null)
+            {
+                return(String.format("%s: %s", name, entity.getCustomName().getString()));
+            }
+        }
+        return String.format("%s:", name);
+    }
+    private static String getEntitySpawned(String name, int entityId)
+    {
+        Entity entity = Minecraft.getInstance().level.getEntity(entityId);
+        if(entity != null)
+        {
+            if(entity.getCustomName() != null)
+            {
+                return(String.format("%s: %s", name, entity.getCustomName().getString().split(": ")[1]));
+            }
+        }
+        return String.format("%s:", name);
     }
 }

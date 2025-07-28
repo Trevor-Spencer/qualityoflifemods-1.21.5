@@ -40,6 +40,6 @@ public class WidgetUtils {
     }
     public static int getReal(double normalized, int directionTotal)
     {
-        return (int)(normalized *  directionTotal);
+        return (int)Math.round((normalized *  directionTotal));
     }
 }

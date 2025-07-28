@@ -21,7 +21,7 @@ import java.util.List;
 
 import static net.gamma.qualityoflife.Config.HOPPITY_ACTIVE;
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
-import static net.gamma.qualityoflife.util.DisplayUtils.drawInfo;
+import static net.gamma.qualityoflife.util.DisplayUtils.*;
 import static net.gamma.qualityoflife.util.MathUtils.findNumeric;
 import static net.gamma.qualityoflife.widget.ManagerWidget.HOPPITYWIDGET;
 
@@ -38,6 +38,11 @@ public class HoppityClientEvent {
 
     private static final int HORIZONTALPADDING = 2;
     private static final int VERTICALPADDING = 2;
+
+    private static float hue = 0.0f;
+    private static final String TITLE = "HOPPITY";
+    private static final int TITLECOLOR = 0xFFFFFFFF;
+    private static final int TEXTCOLOR = 0xFFFFFFFF;
 
     @SubscribeEvent
     private static void hoppityScreen(ScreenEvent.Render.Post event)
@@ -154,10 +159,18 @@ public class HoppityClientEvent {
             List<String> strings = List.of(allTimeChocolate, factoryLevelString, chocolateCurrentPrestigeString,
                      rabbitBarnLevelString, barnStorageString, timeTowerString, towerStatus, towerCharges);
 
-            drawInfo(graphics,
+            drawBorder(graphics,
+                    screenWidth, screenHeight, HOPPITYWIDGET.normalizedX, HOPPITYWIDGET.normalizedY,
+                    HOPPITYWIDGET.normalizedWidth, HOPPITYWIDGET.normalizedHeight,hue);
+            drawTextTitle(graphics,
                     screenWidth, screenHeight, HOPPITYWIDGET.normalizedX, HOPPITYWIDGET.normalizedY,
                     HOPPITYWIDGET.normalizedWidth, HOPPITYWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                    Minecraft.getInstance().font, strings, 0xFFFFFF, false, true);
+                    Minecraft.getInstance().font, TITLE, TITLECOLOR);
+            drawTextBody(graphics,
+                    screenWidth, screenHeight, HOPPITYWIDGET.normalizedX, HOPPITYWIDGET.normalizedY,
+                    HOPPITYWIDGET.normalizedWidth, HOPPITYWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
+                    Minecraft.getInstance().font, strings, TEXTCOLOR);
+            hue = (hue + 0.001f) % 1.0f;
         }
     }
 }
