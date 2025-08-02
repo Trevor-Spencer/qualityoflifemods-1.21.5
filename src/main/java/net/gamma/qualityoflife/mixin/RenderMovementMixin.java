@@ -108,12 +108,10 @@ public class RenderMovementMixin {
                     if(rMousePressed)
                     {
                         guiGraphics.blit(RenderType.GUI_TEXTURED, GUI_R_MOUSE_PRESS, realX, realY, 0f, 0f, realWidth, realHeight, realWidth, realHeight);
-
                     }
                     if(lMousePressed)
                     {
                         guiGraphics.blit(RenderType.GUI_TEXTURED, GUI_L_MOUSE_PRESS, realX, realY, 0f, 0f, realWidth, realHeight, realWidth, realHeight);
-
                     }
                 }
             }

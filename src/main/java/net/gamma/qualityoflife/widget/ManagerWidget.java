@@ -2,6 +2,8 @@ package net.gamma.qualityoflife.widget;
 
 import net.minecraft.network.chat.Component;
 
+import java.util.List;
+
 import static net.gamma.qualityoflife.Config.*;
 
 public class ManagerWidget {
@@ -10,4 +12,14 @@ public class ManagerWidget {
     public static CustomWidget HOPPITYWIDGET = CustomWidget.readIn("hoppityWidget.json", Component.literal("Hoppity Display"), () -> HOPPITY_ACTIVE.get());
     public static CustomWidget SLAYERWIDGET = CustomWidget.readIn("slayerWidget.json", Component.literal("Slayer Display"), () -> SLAYER_ACTIVE.get());
     public static CustomWidget BEACONWIDGET = CustomWidget.readIn("beaconWidget.json", Component.literal("Beacon Display"), () -> HUNTING_ACTIVE.get());
+
+    public static List<CustomWidget> WIDGETS = List.of(COORDINATESWIDGET,MOVEMENTVISUALWIDGET,HOPPITYWIDGET,SLAYERWIDGET,BEACONWIDGET);
+
+    public static void writeJsons()
+    {
+        for(CustomWidget widget : WIDGETS)
+        {
+            widget.writeJson();
+        }
+    }
 }

@@ -9,7 +9,8 @@
     "HuntingMixin",
     "ParticleEngineMixin",
     "ItemBackgroundMixin",
-    "InventoryBackgroundMixin"
+    "InventoryBackgroundMixin",
+    "LocalPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

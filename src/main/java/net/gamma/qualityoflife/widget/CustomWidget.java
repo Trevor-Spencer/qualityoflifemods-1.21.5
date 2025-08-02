@@ -9,10 +9,13 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.function.BooleanSupplier;
 
+import static net.gamma.qualityoflife.QualityofLifeMods.LOGGER;
+import static net.gamma.qualityoflife.QualityofLifeMods.MODCONFIGFOLDER;
 import static net.gamma.qualityoflife.util.CursorUtils.setCursor;
 import static net.gamma.qualityoflife.util.WidgetUtils.*;
 
@@ -27,6 +30,7 @@ public class CustomWidget extends AbstractWidget {
     public double normalizedY;
     public double normalizedWidth;
     public double normalizedHeight;
+    public String filename;
 
     public double mouseOffsetX;
     public double mouseOffsetY;
@@ -37,7 +41,7 @@ public class CustomWidget extends AbstractWidget {
     public enum RESIZE_DIRECTION {NONE, UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT}
     public RESIZE_DIRECTION resizeDirection = RESIZE_DIRECTION.NONE;
 
-    public CustomWidget(int x, int y, int width, int height, Component message, BooleanSupplier toRender) {
+    public CustomWidget(int x, int y, int width, int height, Component message, String file, BooleanSupplier toRender) {
         super(x, y, width, height, message);
         screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
@@ -45,6 +49,7 @@ public class CustomWidget extends AbstractWidget {
         normalizedY = getNormalized(y, screenHeight);
         normalizedWidth = getNormalized(width, screenWidth);
         normalizedHeight = getNormalized(height, screenHeight);
+        filename = file;
         this.toRender = toRender;
     }
 
@@ -55,19 +60,39 @@ public class CustomWidget extends AbstractWidget {
         double nY;
         double nWidth;
         double nHeight;
-        try
+        String debugStatement;
+        Path filePath = MODCONFIGFOLDER.resolve(filename);
+        if(!Files.exists(filePath))
         {
-            JsonNode jsonNode = objectMapper.readTree(new File(filename));
-            nX = jsonNode.has("normalizedX") ? jsonNode.get("normalizedX").asDouble() : 0d;
-            nY = jsonNode.has("normalizedY") ? jsonNode.get("normalizedY").asDouble() : 0d;
-            nWidth = jsonNode.has("normalizedWidth") ? jsonNode.get("normalizedWidth").asDouble() : 0.1d;
-            nHeight = jsonNode.has("normalizedHeight") ? jsonNode.get("normalizedHeight").asDouble() : 0.1d;
-        } catch(IOException exception)
-        {
+            debugStatement = String.format("[QUALITYOFLIFE] Filepath not found: %s", filePath);
+            LOGGER.warn(debugStatement);
             nX = 0;
             nY = 0;
             nWidth = 0.1d;
             nHeight = 0.1d;
+        }
+        else
+        {
+            try
+            {
+                JsonNode jsonNode = objectMapper.readTree(filePath.toFile());
+                nX = jsonNode.has("normalizedX") ? jsonNode.get("normalizedX").asDouble() : 0d;
+                nY = jsonNode.has("normalizedY") ? jsonNode.get("normalizedY").asDouble() : 0d;
+                nWidth = jsonNode.has("normalizedWidth") ? jsonNode.get("normalizedWidth").asDouble() : 0.1d;
+                nHeight = jsonNode.has("normalizedHeight") ? jsonNode.get("normalizedHeight").asDouble() : 0.1d;
+
+                debugStatement = String.format("[QUALITYOFLIFE] Finished Reading file: %s", filePath);
+                LOGGER.info(debugStatement);
+            } catch(IOException exception)
+            {
+                nX = 0;
+                nY = 0;
+                nWidth = 0.1d;
+                nHeight = 0.1d;
+
+                debugStatement = String.format("[QUALITYOFLIFE] Unable to parse file: %s", filePath);
+                LOGGER.info(debugStatement);
+            }
         }
         screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
@@ -76,7 +101,7 @@ public class CustomWidget extends AbstractWidget {
         int width = getReal(nWidth, screenWidth);
         int height = getReal(nHeight, screenHeight);
 
-        return new CustomWidget(x, y, width, height, message, toRender);
+        return new CustomWidget(x, y, width, height, message, filename, toRender);
     }
 
     @Override
@@ -355,7 +380,7 @@ public class CustomWidget extends AbstractWidget {
         normalizedWidth = getNormalized(finalWidth, screenWidth);
     }
 
-    public void writeJson(String filename)
+    public void writeJson()
     {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode jsonNode = objectMapper.createObjectNode();
@@ -363,10 +388,26 @@ public class CustomWidget extends AbstractWidget {
         jsonNode.put("normalizedY", normalizedY);
         jsonNode.put("normalizedWidth", normalizedWidth);
         jsonNode.put("normalizedHeight", normalizedHeight);
+
+        String debugStatement;
         try
         {
-            objectMapper.writeValue(new File(filename), jsonNode);
-        } catch(IOException exception) {}
+            Files.createDirectories(MODCONFIGFOLDER);
+        } catch (IOException e) {
+            debugStatement = String.format("[QUALITYOFLIFE] Unable to create config directory: %s", MODCONFIGFOLDER);
+            LOGGER.warn(debugStatement);
+        }
+
+        Path filePath = MODCONFIGFOLDER.resolve(filename);
+        try
+        {
+            objectMapper.writeValue(filePath.toFile(), jsonNode);
+            debugStatement = String.format("[QUALITYOFLIFE] Finished Writing file: %s", filePath);
+            LOGGER.info(debugStatement);
+        } catch(IOException exception) {
+            debugStatement = String.format("[QUALITYOFLIFE] Unable to write file: %s", filePath);
+            LOGGER.info(debugStatement);
+        }
 
     }
 }

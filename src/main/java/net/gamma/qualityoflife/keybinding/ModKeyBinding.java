@@ -8,6 +8,7 @@ import org.lwjgl.glfw.GLFW;
 public class ModKeyBinding {
     public static KeyMapping ZOOM_KEY;
     public static KeyMapping MODIFY_MOD_KEY;
+    public static KeyMapping LOCK_KEY;
 
     public static void register(RegisterKeyMappingsEvent event)
     {
@@ -19,9 +20,15 @@ public class ModKeyBinding {
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_RIGHT_SHIFT,
                 "key.categories.qualityoflifemods");
+        LOCK_KEY = new KeyMapping("key.qualityoflifemods.lock",
+                InputConstants.Type.KEYSYM,
+                GLFW.GLFW_KEY_X,
+                "key.categories.qualityoflifemods"
+                );
 
         event.register(ZOOM_KEY);
         event.register(MODIFY_MOD_KEY);
+        event.register(LOCK_KEY);
 
     }
 }

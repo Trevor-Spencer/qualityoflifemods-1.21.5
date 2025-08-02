@@ -36,11 +36,7 @@ public class CustomScreen extends Screen {
 
     @Override
     public void onClose() {
-        COORDINATESWIDGET.writeJson("coordinatesWidget.json");
-        MOVEMENTVISUALWIDGET.writeJson("movementVisualWidget.json");
-        HOPPITYWIDGET.writeJson("hoppityWidget.json");
-        SLAYERWIDGET.writeJson("slayerWidget.json");
-        BEACONWIDGET.writeJson("beaconWidget.json");
+        writeJsons();
         screenOpen = false;
         super.onClose();
     }
