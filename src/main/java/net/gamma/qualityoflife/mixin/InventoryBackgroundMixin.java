@@ -106,7 +106,7 @@ public class InventoryBackgroundMixin{
     @Inject(method = "slotClicked", at = @At("HEAD"), cancellable = true)
     private void onSlotClicked(Slot slot, int slotId, int mouseButton, ClickType type, CallbackInfo ci)
     {
-//        if(!onSkyblock){return;}
+        if(!onSkyblock){return;}
         int offset = getOffset(menu.getClass());
         if(menu instanceof InventoryMenu)
         {
@@ -137,7 +137,7 @@ public class InventoryBackgroundMixin{
     @Inject(method = "render", at = @At("HEAD"))
     private void render(GuiGraphics p_283479_, int p_283661_, int p_281248_, float p_281886_, CallbackInfo ci)
     {
-//        if(!onSkyblock){return;}
+        if(!onSkyblock){return;}
         Slot value = ((AbstractContainerScreen<?>) (Object) this).getSlotUnderMouse();
         if(value == null){return;}
         long window = Minecraft.getInstance().getWindow().getWindow();
@@ -177,13 +177,16 @@ public class InventoryBackgroundMixin{
     @Inject(method = "renderSlot", at = @At("TAIL"))
     private void renderLock(GuiGraphics guiGraphics, Slot slot, CallbackInfo ci)
     {
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
         processSpecificInventory(guiGraphics, slot);
+        guiGraphics.pose().popPose();
     }
 
     @Inject(method = "renderSlotContents", at = @At("HEAD"))
     private void renderBackground(GuiGraphics guiGraphics, ItemStack itemstack, Slot slot, String countString, CallbackInfo ci)
     {
-//        if(!onSkyblock){return;}
+        if(!onSkyblock){return;}
         if(!itemstack.isEmpty())
         {
             List<Component> lines =  itemstack.getTooltipLines(Item.TooltipContext.EMPTY, Minecraft.getInstance().player, TooltipFlag.NORMAL);
