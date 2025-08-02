@@ -177,6 +177,7 @@ public class InventoryBackgroundMixin{
     @Inject(method = "renderSlot", at = @At("TAIL"))
     private void renderLock(GuiGraphics guiGraphics, Slot slot, CallbackInfo ci)
     {
+        if(!onSkyblock){return;}
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
         processSpecificInventory(guiGraphics, slot);

@@ -19,5 +19,6 @@
   "qualityoflifemods.configuration.enablemovement": "Enable Movment Visual",
   "qualityoflifemods.configuration.enableslayer": "Enable Slayer Tracker",
   "qualityoflifemods.configuration.enablehoppity": "Enable Hoppity Tracker",
-  "qualityoflifemods.configuration.enablehunting": "Enable Hunting Tracker"
+  "qualityoflifemods.configuration.enablehunting": "Enable Hunting Tracker",
+  "qualityoflifemods.configuration.disablefog": "Disable Fog"
 }

@@ -10,7 +10,8 @@
     "ParticleEngineMixin",
     "ItemBackgroundMixin",
     "InventoryBackgroundMixin",
-    "LocalPlayerMixin"
+    "LocalPlayerMixin",
+    "RenderFogMixin"
   ],
   "injectors": {
     "defaultRequire": 1
