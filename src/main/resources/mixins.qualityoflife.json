@@ -11,7 +11,8 @@
     "ItemBackgroundMixin",
     "InventoryBackgroundMixin",
     "LocalPlayerMixin",
-    "RenderFogMixin"
+    "RenderFogMixin",
+    "PestChatMixin"
   ],
   "injectors": {
     "defaultRequire": 1

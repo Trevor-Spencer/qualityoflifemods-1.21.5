@@ -38,7 +38,7 @@ public class HuntingClientEvent {
     private static final Set<BlockPos> scannedParticles = new HashSet<>();
 
     private static final ResourceLocation RED_TEXTURE = ResourceLocation.fromNamespaceAndPath(QualityofLifeMods.MOD_ID, "textures/blanktexture.png");
-    private static final RenderType SOLID_TRANSLUCENT_RENDERTYPE = RenderType.entityTranslucent(RED_TEXTURE);
+    public static final RenderType SOLID_TRANSLUCENT_RENDERTYPE = RenderType.entityTranslucent(RED_TEXTURE);
 
     private static final int RED = 0xFF;
     private static final int GREEN = 0xFF;
@@ -184,7 +184,7 @@ public class HuntingClientEvent {
     }
 
 
-    private static void drawSolidRedFace(VertexConsumer buffer,
+    public static void drawSolidRedFace(VertexConsumer buffer,
                                          double x1, double y1, double z1,
                                          double x2, double y2, double z2,
                                          double x3, double y3, double z3,

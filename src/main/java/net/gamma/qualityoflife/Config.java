@@ -32,6 +32,9 @@ public class Config
     public static final ModConfigSpec.BooleanValue DISABLE_FOG = BUILDER
             .comment("Disable Fog")
             .define("disablefog", true);
+    public static final ModConfigSpec.BooleanValue PEST_ACTIVE = BUILDER
+            .comment("Enable Pest Plot Outline")
+            .define("enablepest", true);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 }

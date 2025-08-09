@@ -21,9 +21,10 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 
+import static net.gamma.qualityoflife.event.PestChatClientEvent.readPestPlotJson;
+import static net.gamma.qualityoflife.event.PestChatClientEvent.writePestPlotJson;
 import static net.gamma.qualityoflife.util.InventoryUtils.readIn;
 import static net.gamma.qualityoflife.util.InventoryUtils.writeOut;
-import static net.gamma.qualityoflife.widget.ManagerWidget.COORDINATESWIDGET;
 import static net.gamma.qualityoflife.widget.ManagerWidget.writeJsons;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
@@ -34,6 +35,7 @@ public class QualityofLifeMods
     public static final String MOD_ID = "qualityoflifemods";
     public static final Logger LOGGER = LoggerFactory.getLogger(QualityofLifeMods.MOD_ID);
     public static final Path MODCONFIGFOLDER = FMLPaths.CONFIGDIR.get().resolve(MOD_ID);
+    public static final boolean DEBUGMODE = false;
 
     // The constructor for the mod class is the first code that is run when your mod is loaded.
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
@@ -60,6 +62,7 @@ public class QualityofLifeMods
     public void onClientClose(ClientStoppingEvent event)
     {
         writeOut("lockedSlots.json");
+        writePestPlotJson();
         writeJsons();
     }
 
@@ -78,6 +81,7 @@ public class QualityofLifeMods
         public static void onClientSetup(FMLClientSetupEvent event)
         {
             readIn("lockedSlots.json");
+            readPestPlotJson();
         }
 
         @SubscribeEvent

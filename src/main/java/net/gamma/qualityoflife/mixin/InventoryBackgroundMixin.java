@@ -19,6 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.List;
 import java.util.Map;
 
+import static net.gamma.qualityoflife.QualityofLifeMods.DEBUGMODE;
+import static net.gamma.qualityoflife.QualityofLifeMods.LOGGER;
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
 import static net.gamma.qualityoflife.keybinding.ModKeyBinding.LOCK_KEY;
 import static net.gamma.qualityoflife.util.InventoryUtils.*;
@@ -84,10 +86,12 @@ public class InventoryBackgroundMixin{
     {
         if(LOCKED_INVENTORY_SLOTS.contains(slot - offset))
         {
+            if(DEBUGMODE){LOGGER.info(String.format("[QUALITYOFLIFE] Unlocking Slot: %d with offset: %d from LOCKED_INVENTORY_SLOTS", slot, offset));}
             LOCKED_INVENTORY_SLOTS.remove(slot - offset);
         }
         else
         {
+            if(DEBUGMODE){LOGGER.info(String.format("[QUALITYOFLIFE] Locking Slot: %d with offset: %d in LOCKED_INVENTORY_SLOTS", slot, offset));}
             LOCKED_INVENTORY_SLOTS.add(slot - offset);
         }
     }
@@ -95,10 +99,12 @@ public class InventoryBackgroundMixin{
     {
         if(LOCKED_ARMOR_SLOTS.contains(slot - 5))
         {
+            if(DEBUGMODE){LOGGER.info(String.format("[QUALITYOFLIFE] Unlocking Slot: %d with offset: 5 from LOCKED_ARMOR_SLOTS", slot));}
             LOCKED_ARMOR_SLOTS.remove(slot - 5);
         }
         else
         {
+            if(DEBUGMODE){LOGGER.info(String.format("[QUALITYOFLIFE] Locking Slot: %d with offset: 5 in LOCKED_ARMOR_SLOTS", slot));}
             LOCKED_ARMOR_SLOTS.add(slot - 5);
         }
     }
@@ -106,7 +112,6 @@ public class InventoryBackgroundMixin{
     @Inject(method = "slotClicked", at = @At("HEAD"), cancellable = true)
     private void onSlotClicked(Slot slot, int slotId, int mouseButton, ClickType type, CallbackInfo ci)
     {
-        if(!onSkyblock){return;}
         int offset = getOffset(menu.getClass());
         if(menu instanceof InventoryMenu)
         {
@@ -137,15 +142,15 @@ public class InventoryBackgroundMixin{
     @Inject(method = "render", at = @At("HEAD"))
     private void render(GuiGraphics p_283479_, int p_283661_, int p_281248_, float p_281886_, CallbackInfo ci)
     {
-        if(!onSkyblock){return;}
         Slot value = ((AbstractContainerScreen<?>) (Object) this).getSlotUnderMouse();
         if(value == null){return;}
         long window = Minecraft.getInstance().getWindow().getWindow();
         boolean keyDown = InputConstants.isKeyDown(window, LOCK_KEY.getKey().getValue());
+        int offset = getOffset(menu.getClass());
         if(keyDown && !keyRecentlyPressed)
         {
             keyRecentlyPressed = true;
-            int offset = getOffset(menu.getClass());
+
             if(menu instanceof InventoryMenu)
             {
                 if(value.index >= 5 && value.index <= 8)
@@ -159,13 +164,17 @@ public class InventoryBackgroundMixin{
             }
             else if(offset != -1)
             {
-                toggleInventorySlots(value.index, offset);
+                if(value.index - offset >= 0)
+                {
+                    toggleInventorySlots(value.index, offset);
+                }
             }
-            else if(menu instanceof ChestMenu)
-            {
+            else if(menu instanceof ChestMenu) {
                 int rowCount = ((ChestMenu) menu).getRowCount();
                 int chestSlots = rowCount * 9;
-                toggleInventorySlots(value.index, chestSlots);
+                if (value.index >= chestSlots && value.index < (chestSlots + 4 * 9)) {
+                    toggleInventorySlots(value.index, chestSlots);
+                }
             }
         }
         if(!keyDown && keyRecentlyPressed)
@@ -177,7 +186,6 @@ public class InventoryBackgroundMixin{
     @Inject(method = "renderSlot", at = @At("TAIL"))
     private void renderLock(GuiGraphics guiGraphics, Slot slot, CallbackInfo ci)
     {
-        if(!onSkyblock){return;}
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
         processSpecificInventory(guiGraphics, slot);

@@ -4,16 +4,20 @@ import net.gamma.qualityoflife.QualityofLifeMods;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.scores.DisplaySlot;
 import net.minecraft.world.scores.Objective;
+import net.minecraft.world.scores.PlayerTeam;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
+import java.util.Collection;
+
 @EventBusSubscriber(modid = QualityofLifeMods.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class SkyblockClientEvent {
     private static boolean updateWorld = true;
     public static boolean onSkyblock = false;
+    public static boolean onGarden = false;
 
     private static final int SCANDELAY = 20;
     private static int scanTick = 0;
@@ -28,6 +32,22 @@ public class SkyblockClientEvent {
         }
         onSkyblock = false;
         updateWorld = true;
+    }
+    public static void checkOnGarden()
+    {
+        Objective obj = Minecraft.getInstance().level.getScoreboard().getDisplayObjective(DisplaySlot.SIDEBAR);
+        if(obj == null) {return;}
+        Collection<PlayerTeam> teams = Minecraft.getInstance().level.getScoreboard().getPlayerTeams();
+        for(PlayerTeam team : teams)
+        {
+            String scoreboardLine = String.format("%s%s",team.getPlayerPrefix().getString(), team.getPlayerSuffix().getString());
+            if(scoreboardLine.contains("The Garden"))
+            {
+                onGarden = true;
+                return;
+            }
+        }
+        onGarden = false;
     }
 
     @SubscribeEvent
@@ -51,6 +71,11 @@ public class SkyblockClientEvent {
             return;
         }
         scanTick = 0;
-        if(updateWorld){checkOnSkyblock();}
+        if(updateWorld)
+        {
+            checkOnSkyblock();
+
+        }
+        checkOnGarden();
     }
 }

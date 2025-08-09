@@ -17,6 +17,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 
 import static net.gamma.qualityoflife.Config.SLAYER_ACTIVE;
+import static net.gamma.qualityoflife.QualityofLifeMods.DEBUGMODE;
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
 import static net.gamma.qualityoflife.util.DisplayUtils.*;
 import static net.gamma.qualityoflife.util.DisplayUtils.drawTextBody;
@@ -300,7 +301,7 @@ public class SlayerTrackerClientEvent {
                     timeRemainingID = tempTimeRemainingID;
                     bossFound = true;
                     //LOG BOSS INITIALIZE WITH INFO
-                    logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);
+                    if(DEBUGMODE){logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);}
                     break;
                 }
                 nearbyArmorStand.clear();
@@ -369,7 +370,7 @@ public class SlayerTrackerClientEvent {
                     timeRemainingID = tempTimeRemainingID;
                     bossFound = true;
                     //LOG BOSS INITIALIZE WITH INFO
-                    logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);
+                    if(DEBUGMODE){logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);}
                     break;
                 }
                 nearbyArmorStand.clear();
@@ -438,7 +439,7 @@ public class SlayerTrackerClientEvent {
                     timeRemainingID = tempTimeRemainingID;
                     bossFound = true;
                     //LOG BOSS INITIALIZE WITH INFO
-                    logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);
+                    if(DEBUGMODE){logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);}
                     break;
                 }
                 nearbyArmorStand.clear();
@@ -507,7 +508,7 @@ public class SlayerTrackerClientEvent {
                     timeRemainingID = tempTimeRemainingID;
                     bossFound = true;
                     //LOG BOSS INITIALIZE WITH INFO
-                    logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);
+                    if(DEBUGMODE){logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);}
                     break;
                 }
                 nearbyArmorStand.clear();
@@ -592,7 +593,7 @@ public class SlayerTrackerClientEvent {
                     timeRemainingID = tempTimeRemainingID;
                     bossFound = true;
                     //LOG BOSS INITIALIZE WITH INFO
-                    logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);
+                    if(DEBUGMODE){logMobs(bossID, nameID, spawnedByID, timeRemainingID, false);}
                     break;
                 }
                 nearbyArmorStand.clear();
@@ -650,7 +651,7 @@ public class SlayerTrackerClientEvent {
                         skeletonFound = true;
                         miniFound = true;
                         //LOG BOSS INITIALIZE WITH INFO
-                        logMobs(skeletonBossID, skeletonNameID, -1, skeletonTimeRemainingID, true);
+                        if(DEBUGMODE){logMobs(skeletonBossID, skeletonNameID, -1, skeletonTimeRemainingID, true);}
                         break;
                     }
                     nearbyArmorStand.clear();
@@ -703,7 +704,7 @@ public class SlayerTrackerClientEvent {
                         piglinFound = true;
                         miniFound = true;
                         //LOG BOSS INITIALIZE WITH INFO
-                        logMobs(piglinBossID, piglinNameID, -1, piglinTimeRemainingID, true);
+                        if(DEBUGMODE){logMobs(piglinBossID, piglinNameID, -1, piglinTimeRemainingID, true);}
                         break;
                     }
                     nearbyArmorStand.clear();
