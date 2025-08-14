@@ -59,17 +59,15 @@ public class DisplayUtils {
         int availableSpace = boxHeight - 3*PIXELBORDER - 4*CustomWidget.PADDING;
         int totalTextHeight = (int)(titleHeight + bodyHeight);
 
-        float bodyHeightScale = 1.0f;
-        float titleHeightScale = 1.0f;
+        float bodyHeightScale;
+        float titleHeightScale;
+        float totalScale = 1.0f;
         if(totalTextHeight > availableSpace)
         {
-            bodyHeightScale = Math.min(1.0f, (availableSpace - titleHeight) / bodyHeight);
-            bodyHeight *= bodyHeightScale;
-            if(bodyHeight + titleHeight > availableSpace)
-            {
-                titleHeightScale = Math.min(1.0f, (availableSpace - bodyHeight) / titleHeight);
-            }
+            totalScale = (float) availableSpace / totalTextHeight;
         }
+        bodyHeightScale = Math.min(1.0f, totalScale);
+        titleHeightScale = Math.min(1.0f, totalScale);
 
         drawBorder(graphics,
                 screenWidth, screenHeight, widget.normalizedX, widget.normalizedY,
