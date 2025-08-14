@@ -15,10 +15,12 @@ import java.util.regex.Pattern;
 
 import static net.gamma.qualityoflife.QualityofLifeMods.DEBUGMODE;
 import static net.gamma.qualityoflife.QualityofLifeMods.LOGGER;
+import static net.gamma.qualityoflife.event.CampfireClientEvent.placedCampfire;
 import static net.gamma.qualityoflife.event.PestChatClientEvent.addPlot;
+import static net.gamma.qualityoflife.event.SkyblockClientEvent.onGlacite;
 
 @Mixin(ChatComponent.class)
-public class PestChatMixin {
+public class ChatComponentMixin {
     String regexOffline = "GROSS! While you were offline,\\s*\\S*\\s*Pests? spawned in Plots? ((?:\\d+(?:, \\d+)*)(?:,? and \\d+)?)!";
     String regexFarming = "(?:GROSS!|EWW!|YUCK!) (?:A\\s*\\S*\\s*Pest has appeared|\\d+\\s*\\S*\\s*Pests? have spawned) in Plots? - (\\d+)!";
     Pattern patternCase2 = Pattern.compile(regexOffline);
@@ -51,6 +53,11 @@ public class PestChatMixin {
 
     private void parseString(String message)
     {
+        if(onGlacite)
+        {
+            glaciteParseString(message);
+            return;
+        }
         Matcher matcher;
 
         matcher = patternCase2.matcher(message);
@@ -71,7 +78,14 @@ public class PestChatMixin {
         {
             if(DEBUGMODE){LOGGER.info("[QUALITYOFLIFE] Matched case 3");}
             addPlot(matcher.group(1));
-            return;
+        }
+    }
+
+    private void glaciteParseString(String message)
+    {
+        if(message.startsWith("You've warmed your feet by your campfire"))
+        {
+            placedCampfire = true;
         }
     }
 }

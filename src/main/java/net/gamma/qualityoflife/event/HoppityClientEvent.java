@@ -36,10 +36,6 @@ public class HoppityClientEvent {
     private static String towerStatus = "Status: ";
     private static String towerCharges = "Charges: ";
 
-    private static final int HORIZONTALPADDING = 2;
-    private static final int VERTICALPADDING = 2;
-
-    private static float hue = 0.0f;
     private static final String TITLE = "HOPPITY";
     private static final int TITLECOLOR = 0xFFFFFFFF;
     private static final int TEXTCOLOR = 0xFFFFFFFF;
@@ -159,18 +155,9 @@ public class HoppityClientEvent {
             List<String> strings = List.of(allTimeChocolate, factoryLevelString, chocolateCurrentPrestigeString,
                      rabbitBarnLevelString, barnStorageString, timeTowerString, towerStatus, towerCharges);
 
-            drawBorder(graphics,
-                    screenWidth, screenHeight, HOPPITYWIDGET.normalizedX, HOPPITYWIDGET.normalizedY,
-                    HOPPITYWIDGET.normalizedWidth, HOPPITYWIDGET.normalizedHeight,hue);
-            drawTextTitle(graphics,
-                    screenWidth, screenHeight, HOPPITYWIDGET.normalizedX, HOPPITYWIDGET.normalizedY,
-                    HOPPITYWIDGET.normalizedWidth, HOPPITYWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                    Minecraft.getInstance().font, TITLE, TITLECOLOR);
-            drawTextBody(graphics,
-                    screenWidth, screenHeight, HOPPITYWIDGET.normalizedX, HOPPITYWIDGET.normalizedY,
-                    HOPPITYWIDGET.normalizedWidth, HOPPITYWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                    Minecraft.getInstance().font, strings, TEXTCOLOR);
-            hue = (hue + 0.001f) % 1.0f;
+            renderContentSpecial(graphics,
+                    strings, TEXTCOLOR, TITLE, TITLECOLOR,
+                    screenWidth,screenHeight, HOPPITYWIDGET);
         }
     }
 }

@@ -1,5 +1,6 @@
 package net.gamma.qualityoflife.screen;
 
+import net.gamma.qualityoflife.widget.CustomWidget;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -16,11 +17,10 @@ public class CustomScreen extends Screen {
     protected void init()
     {
         super.init();
-        addRenderableWidget(COORDINATESWIDGET);
-        addRenderableWidget(MOVEMENTVISUALWIDGET);
-        addRenderableWidget(HOPPITYWIDGET);
-        addRenderableWidget(SLAYERWIDGET);
-        addRenderableWidget(BEACONWIDGET);
+        for(CustomWidget widget : WIDGETS)
+        {
+            addRenderableWidget(widget);
+        }
         screenOpen = true;
     }
 

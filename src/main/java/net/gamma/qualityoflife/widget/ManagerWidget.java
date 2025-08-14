@@ -12,8 +12,9 @@ public class ManagerWidget {
     public static CustomWidget HOPPITYWIDGET = CustomWidget.readIn("hoppityWidget.json", Component.literal("Hoppity Display"), () -> HOPPITY_ACTIVE.get());
     public static CustomWidget SLAYERWIDGET = CustomWidget.readIn("slayerWidget.json", Component.literal("Slayer Display"), () -> SLAYER_ACTIVE.get());
     public static CustomWidget BEACONWIDGET = CustomWidget.readIn("beaconWidget.json", Component.literal("Beacon Display"), () -> HUNTING_ACTIVE.get());
+    public static CustomWidget CAMPFIREWIDGET = CustomWidget.readIn("campfireWidget.json", Component.literal("Campfire Display"), () -> CAMPFIRE_ACTIVE.get());
 
-    public static List<CustomWidget> WIDGETS = List.of(COORDINATESWIDGET,MOVEMENTVISUALWIDGET,HOPPITYWIDGET,SLAYERWIDGET,BEACONWIDGET);
+    public static List<CustomWidget> WIDGETS = List.of(COORDINATESWIDGET,MOVEMENTVISUALWIDGET,HOPPITYWIDGET,SLAYERWIDGET,BEACONWIDGET,CAMPFIREWIDGET);
 
     public static void writeJsons()
     {

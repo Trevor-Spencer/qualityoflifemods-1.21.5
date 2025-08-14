@@ -20,7 +20,6 @@ import static net.gamma.qualityoflife.Config.SLAYER_ACTIVE;
 import static net.gamma.qualityoflife.QualityofLifeMods.DEBUGMODE;
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.onSkyblock;
 import static net.gamma.qualityoflife.util.DisplayUtils.*;
-import static net.gamma.qualityoflife.util.DisplayUtils.drawTextBody;
 import static net.gamma.qualityoflife.util.SlayerUtils.logMobs;
 import static net.gamma.qualityoflife.widget.ManagerWidget.SLAYERWIDGET;
 
@@ -63,10 +62,6 @@ public class SlayerTrackerClientEvent {
     private static int trackCooldown = 0;
 
     //Rendering Variables
-    private static final int HORIZONTALPADDING = 2;
-    private static final int VERTICALPADDING = 2;
-
-    private static float hue = 0.0f;
     private static final String TITLE = "SLAYER";
     private static final int TITLECOLOR = 0xFFFFFFFF;
     private static final int TEXTCOLOR = 0xFFFFFFFF;
@@ -773,18 +768,9 @@ public class SlayerTrackerClientEvent {
         }
         if(!strings.isEmpty())
         {
-            drawBackgroundBorder(graphics,
-                    screenWidth, screenHeight, SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
-                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, BACKGROUNDCOLOR, hue);
-            drawTextTitle(graphics,
-                    screenWidth, screenHeight,SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
-                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                    Minecraft.getInstance().font, TITLE, TITLECOLOR);
-            drawTextBody(graphics,
-                    screenWidth, screenHeight,SLAYERWIDGET.normalizedX, SLAYERWIDGET.normalizedY,
-                    SLAYERWIDGET.normalizedWidth, SLAYERWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                    Minecraft.getInstance().font, strings, TEXTCOLOR);
-            hue = (hue + 0.001f) % 1.0f;
+            renderContent(graphics,
+                    strings, TEXTCOLOR, TITLE, TITLECOLOR, BACKGROUNDCOLOR,
+                    screenWidth, screenHeight, SLAYERWIDGET);
         }
     }
 

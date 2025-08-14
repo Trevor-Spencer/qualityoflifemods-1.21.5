@@ -35,6 +35,9 @@ public class Config
     public static final ModConfigSpec.BooleanValue PEST_ACTIVE = BUILDER
             .comment("Enable Pest Plot Outline")
             .define("enablepest", true);
+    public static final ModConfigSpec.BooleanValue CAMPFIRE_ACTIVE = BUILDER
+            .comment("Enable Campfire Timer")
+            .define("enablecampfire", true);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 }

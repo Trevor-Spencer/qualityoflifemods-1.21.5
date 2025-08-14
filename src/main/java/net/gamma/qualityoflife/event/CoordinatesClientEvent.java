@@ -1,7 +1,6 @@
 package net.gamma.qualityoflife.event;
 
 import net.gamma.qualityoflife.QualityofLifeMods;
-import net.gamma.qualityoflife.widget.CustomWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Holder;
@@ -18,8 +17,6 @@ import java.util.List;
 
 import static net.gamma.qualityoflife.Config.*;
 import static net.gamma.qualityoflife.util.DisplayUtils.*;
-import static net.gamma.qualityoflife.util.WidgetUtils.getNormalized;
-import static net.gamma.qualityoflife.util.WidgetUtils.getReal;
 import static net.gamma.qualityoflife.widget.ManagerWidget.COORDINATESWIDGET;
 
 @EventBusSubscriber(modid = QualityofLifeMods.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
@@ -28,10 +25,7 @@ public class CoordinatesClientEvent {
     private static Vec3 oldPos = null;
     private static String[] coordinates = new String[] {"X: ", "Y: ", "Z: "};
     private static String stringBiome = "Biome: ";
-    private static final int HORIZONTALPADDING = 2;
-    private static final int VERTICALPADDING = 2;
 
-    private static float hue = 0.0f;
     private static final String TITLE = "COORDINATES";
     private static final int TITLECOLOR = 0xFFFFFFFF;
     private static final int TEXTCOLOR = 0xFFFFFFFF;
@@ -70,30 +64,12 @@ public class CoordinatesClientEvent {
             GuiGraphics graphics = event.getGuiGraphics();
             int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
             int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-            if(getReal(COORDINATESWIDGET.normalizedWidth, screenWidth) < CustomWidget.minWidth)
-            {
-                COORDINATESWIDGET.normalizedWidth = getNormalized(CustomWidget.minWidth, screenWidth);
-                COORDINATESWIDGET.setWidth(CustomWidget.minWidth);
-            }
-            if(getReal(COORDINATESWIDGET.normalizedHeight, screenHeight) < CustomWidget.minHeight)
-            {
-                COORDINATESWIDGET.normalizedHeight = getNormalized(CustomWidget.minHeight, screenHeight);
-                COORDINATESWIDGET.setHeight(CustomWidget.minHeight);
-            }
+
             List<String> strings = List.of(coordinates[0], coordinates[1], coordinates[2], stringBiome);
 
-            drawBackgroundBorder(graphics,
-                    screenWidth,screenHeight, COORDINATESWIDGET.normalizedX, COORDINATESWIDGET.normalizedY,
-                    COORDINATESWIDGET.normalizedWidth, COORDINATESWIDGET.normalizedHeight, BACKGROUNDCOLOR, hue);
-            drawTextTitle(graphics,
-                    screenWidth, screenHeight,COORDINATESWIDGET.normalizedX, COORDINATESWIDGET.normalizedY,
-                    COORDINATESWIDGET.normalizedWidth, COORDINATESWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                    Minecraft.getInstance().font, TITLE, TITLECOLOR);
-            drawTextBody(graphics,
-                    screenWidth, screenHeight,COORDINATESWIDGET.normalizedX, COORDINATESWIDGET.normalizedY,
-                    COORDINATESWIDGET.normalizedWidth, COORDINATESWIDGET.normalizedHeight, HORIZONTALPADDING, VERTICALPADDING,
-                    Minecraft.getInstance().font, strings, TEXTCOLOR);
-            hue = (hue + 0.001f) % 1.0f;
+            renderContent(graphics,
+                    strings, TEXTCOLOR, TITLE, TITLECOLOR, BACKGROUNDCOLOR,
+                    screenWidth, screenHeight, COORDINATESWIDGET);
         }
     }
 }

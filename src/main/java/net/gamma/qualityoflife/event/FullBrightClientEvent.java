@@ -27,10 +27,9 @@ public class FullBrightClientEvent {
         {
             if(Minecraft.getInstance().level != null && !apply)
             {
-                Minecraft.getInstance().levelRenderer.allChanged();;
+                Minecraft.getInstance().levelRenderer.allChanged();
                 apply = true;
             }
-
         }
     }
 }

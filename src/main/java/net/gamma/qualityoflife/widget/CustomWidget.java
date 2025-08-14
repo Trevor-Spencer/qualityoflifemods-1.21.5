@@ -24,8 +24,8 @@ public class CustomWidget extends AbstractWidget {
     public static int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
     public static int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
     public static int PADDING = 4;
-    public static final int minWidth = 50;
-    public static final int minHeight = 50;
+    public static final double MIN_NORMALIZED_WIDTH = 0.1;
+    public static final double MIN_NORMALIZED_HEIGHT = 0.1;
     public double normalizedX;
     public double normalizedY;
     public double normalizedWidth;
@@ -68,8 +68,8 @@ public class CustomWidget extends AbstractWidget {
             LOGGER.warn(debugStatement);
             nX = 0;
             nY = 0;
-            nWidth = 0.1d;
-            nHeight = 0.1d;
+            nWidth = MIN_NORMALIZED_WIDTH;
+            nHeight = MIN_NORMALIZED_HEIGHT;
         }
         else
         {
@@ -78,8 +78,11 @@ public class CustomWidget extends AbstractWidget {
                 JsonNode jsonNode = objectMapper.readTree(filePath.toFile());
                 nX = jsonNode.has("normalizedX") ? jsonNode.get("normalizedX").asDouble() : 0d;
                 nY = jsonNode.has("normalizedY") ? jsonNode.get("normalizedY").asDouble() : 0d;
-                nWidth = jsonNode.has("normalizedWidth") ? jsonNode.get("normalizedWidth").asDouble() : 0.1d;
-                nHeight = jsonNode.has("normalizedHeight") ? jsonNode.get("normalizedHeight").asDouble() : 0.1d;
+                nWidth = jsonNode.has("normalizedWidth") ? jsonNode.get("normalizedWidth").asDouble() : MIN_NORMALIZED_WIDTH;
+                nHeight = jsonNode.has("normalizedHeight") ? jsonNode.get("normalizedHeight").asDouble() : MIN_NORMALIZED_HEIGHT;
+
+                nWidth = Math.max(nWidth, MIN_NORMALIZED_WIDTH);
+                nHeight = Math.max(nHeight, MIN_NORMALIZED_HEIGHT);
 
                 debugStatement = String.format("[QUALITYOFLIFE] Finished Reading file: %s", filePath);
                 LOGGER.info(debugStatement);
@@ -87,8 +90,8 @@ public class CustomWidget extends AbstractWidget {
             {
                 nX = 0;
                 nY = 0;
-                nWidth = 0.1d;
-                nHeight = 0.1d;
+                nWidth = MIN_NORMALIZED_WIDTH;
+                nHeight = MIN_NORMALIZED_HEIGHT;
 
                 debugStatement = String.format("[QUALITYOFLIFE] Unable to parse file: %s", filePath);
                 LOGGER.info(debugStatement);
@@ -114,16 +117,7 @@ public class CustomWidget extends AbstractWidget {
         int realY = getReal(normalizedY, screenHeight);
         int realWidth = getReal(normalizedWidth, screenWidth);
         int realHeight = getReal(normalizedHeight, screenHeight);
-        if(realWidth < minWidth)
-        {
-            realWidth = minWidth;
-            normalizedWidth = getNormalized(realWidth, screenWidth);
-        }
-        if(realHeight < minHeight)
-        {
-            realHeight = minHeight;
-            normalizedHeight = getNormalized(realHeight, screenHeight);
-        }
+
         setX(realX);
         setY(realY);
         setWidth(realWidth);
@@ -337,47 +331,66 @@ public class CustomWidget extends AbstractWidget {
     {
         int newY = (int)mouseY;
         int maxY = getY() + getHeight();
-        newY = Math.max(0, Math.min(newY, maxY - minHeight));
-        int newHeight = Math.max(minHeight, maxY - newY);
-        int finalHeight = Math.min(screenHeight - newY, newHeight);
+        int newHeight = maxY - newY;
+
+        double newNormalizedHeight = getNormalized(newHeight, screenHeight);
+        newNormalizedHeight = Math.max(newNormalizedHeight, MIN_NORMALIZED_HEIGHT);
+        int finalHeight = getReal(newNormalizedHeight, screenHeight);
+
+        newY = maxY - finalHeight;
+        newY = Math.max(0, newY);
 
         setY(newY);
         setHeight(finalHeight);
-        normalizedY  = getNormalized(newY, screenHeight);
-        normalizedHeight = getNormalized(finalHeight, screenHeight);
+
+        normalizedY = getNormalized(newY, screenHeight);
+        normalizedHeight = newNormalizedHeight;
     }
     private void setDown(double mouseY)
     {
         int newY = (int)mouseY;
         int smallestY = getY();
-        int newHeight = Math.max(minHeight, newY - smallestY);
-        int finalHeight = Math.min(screenHeight - smallestY, newHeight);
+        int newHeight = newY - smallestY;
+
+        double newNormalizedHeight = getNormalized(newHeight, screenHeight);
+        newNormalizedHeight = Math.max(newNormalizedHeight, MIN_NORMALIZED_HEIGHT);
+        int finalHeight = getReal(newNormalizedHeight, screenHeight);
+        finalHeight = Math.min(finalHeight, screenHeight - smallestY);
 
         setHeight(finalHeight);
-        normalizedHeight = getNormalized(finalHeight, screenHeight);
+        normalizedHeight = newNormalizedHeight;
     }
     private void setLeft(double mouseX)
     {
         int newX = (int)mouseX;
         int maxX = getX() + getWidth();
-        newX = Math.max(0, Math.min(newX, maxX-minWidth));
-        int newWidth = Math.max(minWidth, maxX - newX);
-        int finalWidth = Math.min(screenWidth - newX, newWidth);
+        int newWidth = maxX - newX;
+
+        double newNormalizedWidth = getNormalized(newWidth, screenWidth);
+        newNormalizedWidth = Math.max(newNormalizedWidth, MIN_NORMALIZED_WIDTH);
+        int finalWidth = getReal(newNormalizedWidth, screenWidth);
+
+        newX = maxX - finalWidth;
+        newX = Math.max(0, newX);
 
         setX(newX);
         setWidth(finalWidth);
         normalizedX = getNormalized(newX, screenWidth);
-        normalizedWidth = getNormalized(finalWidth, screenWidth);
+        normalizedWidth = newNormalizedWidth;
     }
     private void setRight(double mouseX)
     {
         int newX = (int)mouseX;
         int smallestX = getX();
-        int newWidth = Math.max(minWidth, newX - smallestX);
-        int finalWidth = Math.min(screenWidth - smallestX, newWidth);
+        int newWidth = newX - smallestX;
+
+        double newNormalizedWidth = getNormalized(newWidth, screenWidth);
+        newNormalizedWidth = Math.max(newNormalizedWidth, MIN_NORMALIZED_WIDTH);
+        int finalWidth = getReal(newNormalizedWidth,screenWidth);
+        finalWidth = Math.min(finalWidth, screenWidth - smallestX);
 
         setWidth(finalWidth);
-        normalizedWidth = getNormalized(finalWidth, screenWidth);
+        normalizedWidth = newNormalizedWidth;
     }
 
     public void writeJson()

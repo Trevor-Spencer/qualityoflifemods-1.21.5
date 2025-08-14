@@ -21,6 +21,7 @@ public class ModifyModsClientEvent {
         {
             if(GLFW.glfwGetKey(Minecraft.getInstance().getWindow().getWindow(), MODIFY_MOD_KEY.getKey().getValue()) == GLFW.GLFW_PRESS)
             {
+                if(Minecraft.getInstance().screen != null){return;}
                 if(!screenOpen)
                 {
                     Minecraft.getInstance().setScreen(new CustomScreen());
