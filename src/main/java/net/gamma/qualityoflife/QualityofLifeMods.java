@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 
+import static net.gamma.qualityoflife.api.ApiKeyManager.loadKey;
 import static net.gamma.qualityoflife.event.PestChatClientEvent.readPestPlotJson;
 import static net.gamma.qualityoflife.event.PestChatClientEvent.writePestPlotJson;
 import static net.gamma.qualityoflife.util.InventoryUtils.readIn;
@@ -80,6 +81,7 @@ public class QualityofLifeMods
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event)
         {
+            loadKey();
             readIn("lockedSlots.json");
             readPestPlotJson();
         }

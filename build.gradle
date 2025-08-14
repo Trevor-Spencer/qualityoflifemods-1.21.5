@@ -18,6 +18,11 @@ group = mod_group_id
 
 repositories {
     mavenLocal()
+    mavenCentral()
+    maven {
+        name = 'Hypixel'
+        url = uri('https://repo.hypixel.net/repository/Hypixel/')
+    }
 }
 
 base {
@@ -95,6 +100,12 @@ dependencies {
     // And its provides the option to then use net.minecraft as the group, and one of; client, server or joined as the module name, plus the game version as version.
     // For all intends and purposes: You can treat this dependency as if it is a normal library you would use.
     implementation "net.neoforged:neoforge:${neo_version}"
+    // Hypixel API core
+    implementation 'net.hypixel:hypixel-api-core:4.4'
+
+    implementation 'net.hypixel:hypixel-api-transport-apache:4.4'
+    // implementation 'net.hypixel:hypixel-api-transport-unirest:4.4'
+    // implementation 'net.hypixel:hypixel-api-transport-reactor:4.4'
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
