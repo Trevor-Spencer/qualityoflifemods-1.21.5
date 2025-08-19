@@ -1,5 +1,7 @@
 package net.gamma.qualityoflife.api;
 
+import net.hypixel.api.HypixelAPI;
+
 import java.io.*;
 import java.util.Properties;
 
@@ -9,6 +11,8 @@ public class ApiKeyManager {
     private static String apiKey;
     private static final String filePath = "config/qualityoflifemods/api.properties";
     private static final String folderPath = "config/qualityoflifemods/";
+
+    public static HypixelAPI API;
 
     public static void loadKey()
     {
@@ -53,5 +57,15 @@ public class ApiKeyManager {
     public static String getApiKey()
     {
         return apiKey;
+    }
+
+    public static void await() {
+        while (!Thread.interrupted()) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

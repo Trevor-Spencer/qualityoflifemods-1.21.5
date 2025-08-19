@@ -22,5 +22,6 @@
   "qualityoflifemods.configuration.enablehunting": "Enable Hunting Tracker",
   "qualityoflifemods.configuration.disablefog": "Disable Fog",
   "qualityoflifemods.configuration.enablepest": "Enable Pest Plot Outline",
-  "qualityoflifemods.configuration.enablecampfire": "Enable Campfire Timer"
+  "qualityoflifemods.configuration.enablecampfire": "Enable Campfire Timer",
+  "qualityoflifemods.configuration.enablemayor": "Enable Mayor Display"
 }

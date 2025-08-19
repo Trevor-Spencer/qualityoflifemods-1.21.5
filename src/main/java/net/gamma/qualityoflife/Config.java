@@ -38,6 +38,9 @@ public class Config
     public static final ModConfigSpec.BooleanValue CAMPFIRE_ACTIVE = BUILDER
             .comment("Enable Campfire Timer")
             .define("enablecampfire", true);
+    public static final ModConfigSpec.BooleanValue MAYOR_ACTIVE = BUILDER
+            .comment("Enable Mayor Display")
+            .define("enablemayor", true);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 }

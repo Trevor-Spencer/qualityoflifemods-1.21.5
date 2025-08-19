@@ -5,8 +5,12 @@ import net.gamma.qualityoflife.widget.CustomWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.hue;
@@ -48,6 +52,93 @@ public class DisplayUtils {
                 widget.normalizedWidth, titleHeightScale, bodyHeightScale,
                 Minecraft.getInstance().font, strings, bodyColor);
     }
+
+    public static void renderContentMayor(GuiGraphics graphics,
+                                          List<Component> lines, int bodyColor, String title, int titleColor, int backgroundColor,
+                                          int screenWidth, int screenHeight, CustomWidget widget) {
+        Font font = Minecraft.getInstance().font;
+        float titleHeight = font.lineHeight;
+
+        int realWidth = getReal(widget.normalizedWidth, screenWidth) - 2 * PIXELBORDER - 2 * CustomWidget.PADDING;
+        List<Component> wrappedLines = new ArrayList<>();
+        Component indent = Component.literal(" ");
+
+        for (Component line : lines) {
+            if(line == null){continue;}
+            List<Component> pieces = line.toFlatList();
+            boolean firstLine = true;
+            List<Component> currentLine = new ArrayList<>();
+            int currentWidth = 0;
+
+            for (Component piece : pieces) {
+                String text = piece.getString();
+                Style style = piece.getStyle();
+
+                int pieceWidth = font.width(piece);
+
+                if (currentWidth + pieceWidth <= realWidth) {
+                    currentLine.add(piece);
+                    currentWidth += pieceWidth;
+                } else {
+                    int remainingWidth = realWidth - currentWidth;
+                    int splitIndex = getSmallestWidth(text, font, remainingWidth);
+                    int lastSpace = text.lastIndexOf(' ', splitIndex);
+                    if (lastSpace > 0) splitIndex = lastSpace + 1;
+
+                    String partText = text.substring(0, splitIndex).trim();
+                    Component partComp = Component.literal(partText).withStyle(style);
+                    currentLine.add(firstLine ? partComp : indent.copy().append(partComp));
+                    MutableComponent combined = Component.empty();
+                    for (Component c : currentLine) {
+                        combined = combined.append(c);
+                    }
+                    wrappedLines.add(combined);
+
+                    text = text.substring(splitIndex).trim();
+                    if (!text.isEmpty()) {
+                        currentLine = new ArrayList<>();
+                        currentLine.add(indent.copy().append(Component.literal(text).withStyle(style)));
+                        currentWidth = font.width(currentLine.getFirst());
+                    } else {
+                        currentLine = new ArrayList<>();
+                        currentWidth = 0;
+                    }
+
+                    firstLine = false;
+                }
+            }
+
+            if (!currentLine.isEmpty()) {
+                MutableComponent combined = Component.empty();
+                for (Component c : currentLine) {
+                    combined = combined.append(c);
+                }
+                wrappedLines.add(combined);
+            }
+        }
+
+        float bodyHeight = font.lineHeight * wrappedLines.size();
+        int boxHeight = getReal(widget.normalizedHeight, screenHeight);
+        int availableSpace = boxHeight - 3 * PIXELBORDER - 4 * CustomWidget.PADDING;
+        int totalTextHeight = (int) (titleHeight + bodyHeight);
+
+        float totalScale = totalTextHeight > availableSpace ? (float) availableSpace / totalTextHeight : 1.0f;
+        float bodyHeightScale = Math.min(1.0f, totalScale);
+        float titleHeightScale = Math.min(1.0f, totalScale);
+
+        drawBackgroundBorder(graphics,
+                screenWidth, screenHeight, widget.normalizedX, widget.normalizedY,
+                widget.normalizedWidth, widget.normalizedHeight, titleHeightScale, backgroundColor, hue);
+        drawTextTitle(graphics,
+                screenWidth, screenHeight, widget.normalizedX, widget.normalizedY,
+                widget.normalizedWidth, titleHeightScale,
+                font, title, titleColor);
+        drawTextMayorBody(graphics,
+                screenWidth, screenHeight, widget.normalizedX, widget.normalizedY,
+                widget.normalizedWidth, titleHeightScale, bodyHeightScale,
+                font, wrappedLines, bodyColor);
+    }
+
     public static void renderContentSpecial(GuiGraphics graphics,
                                             List<String> strings, int bodyColor, String title, int titleColor,
                                             int screenWidth, int screenHeight, CustomWidget widget)
@@ -194,8 +285,8 @@ public class DisplayUtils {
         {
             scaleWidth = (float) realWidth / maxWidth;
         }
-        float scale = Math.min(scaleWidth, bodyHeightScale);
 
+        float scale = Math.min(scaleWidth, bodyHeightScale);
         PoseStack pose = graphics.pose();
         pose.pushPose();
         pose.scale(scale, scale, 1.0f);
@@ -211,5 +302,58 @@ public class DisplayUtils {
         pose.popPose();
     }
 
+    public static void drawTextMayorBody(GuiGraphics graphics,
+                                         int screenWidth, int screenHeight, double normalizedX, double normalizedY,
+                                         double normalizedWidth, float titleHeightScale, float bodyHeightScale,
+                                         Font font, List<Component> components, int defaultColor) {
+        int widgetX = getReal(normalizedX, screenWidth);
+        int widgetY = getReal(normalizedY, screenHeight);
 
+        int dividerY = getDividerY(widgetY, titleHeightScale);
+
+        int textBoxX = widgetX + PIXELBORDER + CustomWidget.PADDING;
+        int textBoxY = dividerY + PIXELBORDER + CustomWidget.PADDING;
+
+        int realWidth = getReal(normalizedWidth, screenWidth) - 2 * PIXELBORDER - 2 * CustomWidget.PADDING;
+
+        int maxWidth = 0;
+        for (Component comp : components) {
+            int lineWidth = font.width(comp);
+            if (lineWidth > maxWidth) {
+                maxWidth = lineWidth;
+            }
+        }
+
+        float scaleWidth = 1.0f;
+        if (maxWidth > realWidth) {
+            scaleWidth = (float) realWidth / maxWidth;
+        }
+
+        PoseStack pose = graphics.pose();
+        pose.pushPose();
+        pose.scale(scaleWidth, bodyHeightScale, 1.0f);
+
+        float dX = textBoxX / scaleWidth;
+        int displayX = (int) dX;
+        for (int i = 0; i < components.size(); i++) {
+            int displayY = (int)((textBoxY + (i * font.lineHeight) * bodyHeightScale) / bodyHeightScale);
+            Component comp = components.get(i);
+
+            graphics.drawString(font, comp, displayX, displayY, defaultColor, false);
+        }
+        pose.popPose();
+    }
+
+    public static int getSmallestWidth(String line, Font font, int realWidth)
+    {
+        for(int i = 0; i < realWidth; i++)
+        {
+            String temp = line.substring(0,i);
+            if(font.width(temp) > realWidth)
+            {
+                return i-1;
+            }
+        }
+        return font.width(line);
+    }
 }

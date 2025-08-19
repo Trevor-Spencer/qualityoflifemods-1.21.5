@@ -1,6 +1,8 @@
 package net.gamma.qualityoflife.event;
 
 import net.gamma.qualityoflife.QualityofLifeMods;
+import net.hypixel.api.pets.IPetRarity;
+import net.hypixel.api.pets.IPetType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.scores.DisplaySlot;
@@ -26,7 +28,7 @@ public class SkyblockClientEvent {
     public static boolean onGarden = false;
     public static boolean onGlacite = false;
 
-    private static final int SCANDELAY = 20;
+    private static final int SCANDELAY = 20;//20
     private static int scanTick = 0;
 
     public static float hue = 0.0f;
@@ -89,12 +91,10 @@ public class SkyblockClientEvent {
             String scoreboardLine = prefix+suffix;
             if(scoreboardLine.contains("Glacite") || scoreboardLine.contains("Base Camp"))
             {
-                if(DEBUGMODE){LOGGER.info("[QUALITYOFLIFE] On Glacite True");}
                 onGlacite = true;
                 return;
             }
         }
-        if(DEBUGMODE){LOGGER.info("[QUALITYOFLIFE] On Glacite False");}
         onGlacite = false;
     }
 
@@ -123,8 +123,6 @@ public class SkyblockClientEvent {
         if(updateWorld)
         {
             checkOnSkyblock();
-
-
         }
         checkOnGlacite();
         checkOnGarden();

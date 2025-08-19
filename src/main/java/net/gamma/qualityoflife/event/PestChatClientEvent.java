@@ -148,7 +148,7 @@ public class PestChatClientEvent {
         }
     }
 
-    private static String stripColorCodes(String input) {
+    public static String stripColorCodes(String input) {
         return input.replaceAll("§.", "");
     }
 

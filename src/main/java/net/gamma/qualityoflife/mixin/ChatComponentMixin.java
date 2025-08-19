@@ -18,13 +18,16 @@ import static net.gamma.qualityoflife.QualityofLifeMods.LOGGER;
 import static net.gamma.qualityoflife.event.CampfireClientEvent.placedCampfire;
 import static net.gamma.qualityoflife.event.PestChatClientEvent.addPlot;
 import static net.gamma.qualityoflife.event.SkyblockClientEvent.onGlacite;
+import static net.gamma.qualityoflife.event.MayorClientEvent.forceMayorApiPoll;
 
 @Mixin(ChatComponent.class)
 public class ChatComponentMixin {
     String regexOffline = "GROSS! While you were offline,\\s*\\S*\\s*Pests? spawned in Plots? ((?:\\d+(?:, \\d+)*)(?:,? and \\d+)?)!";
     String regexFarming = "(?:GROSS!|EWW!|YUCK!) (?:A\\s*\\S*\\s*Pest has appeared|\\d+\\s*\\S*\\s*Pests? have spawned) in Plots? - (\\d+)!";
+    String regexMayor = ". Event: Mayor Elections \\d+! .";
     Pattern patternCase2 = Pattern.compile(regexOffline);
     Pattern patternCase3 = Pattern.compile(regexFarming);
+    Pattern patternCase4 = Pattern.compile(regexMayor);
 
     @Inject(method = "addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/GuiMessageTag;)V", at = @At("TAIL"))
     private void onChatRead(Component chatComponent, MessageSignature headerSignature, GuiMessageTag tag, CallbackInfo ci)
@@ -37,12 +40,6 @@ public class ChatComponentMixin {
                 String strippedString = stripColorCodes(givenString);
                 parseString(strippedString);
             }
-        }
-        if(DEBUGMODE)
-        {
-            LOGGER.info(String.format("[QUALITYOFLIFE] Chat Message: %s", chatComponent.getString()));
-            LOGGER.info(String.format("[QUALITYOFLIFE] headerSignature: %s", headerSignature));
-            LOGGER.info(String.format("[QUALITYOFLIFE] Tag: %s", tag));
         }
     }
 
@@ -78,6 +75,14 @@ public class ChatComponentMixin {
         {
             if(DEBUGMODE){LOGGER.info("[QUALITYOFLIFE] Matched case 3");}
             addPlot(matcher.group(1));
+            return;
+        }
+
+        matcher = patternCase4.matcher(message);
+        if(matcher.matches())
+        {
+            if(DEBUGMODE){LOGGER.info("[QUALITYOFLIFE] Matched case 4");}
+            forceMayorApiPoll = true;
         }
     }
 
